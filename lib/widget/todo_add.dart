@@ -1,3 +1,5 @@
+import 'package:f_todo/model/model.dart';
+import 'package:f_todo/todo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
@@ -7,6 +9,7 @@ class TodoAddBottomSheet extends StatefulWidget {
 }
 
 class TodoAddBottomSheetState extends State<TodoAddBottomSheet> {
+  var _contentController = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -23,6 +26,7 @@ class TodoAddBottomSheetState extends State<TodoAddBottomSheet> {
 
   Widget _buildInputTextField() {
     return TextField(
+      controller: _contentController,
       decoration: InputDecoration(
         hintText: "请输入待办事项",
         fillColor: Color(0x30cccccc),
@@ -44,7 +48,15 @@ class TodoAddBottomSheetState extends State<TodoAddBottomSheet> {
     return IconButton(
       icon: Icon(Icons.done),
       color: Colors.lightBlue,
-      onPressed: () {},
+      onPressed: () async {
+        var content = _contentController.text;
+        if (content.isEmpty) {
+          Navigator.pop(context);
+          return;
+        }
+        var newTodoId = await Todo(content: content).save();
+        Log.debug("新增待办事项: $newTodoId");
+      },
     );
   }
 }
