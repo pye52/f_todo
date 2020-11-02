@@ -1,3 +1,0 @@
-class Todo {
-  String content;
-}
