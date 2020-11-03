@@ -7,6 +7,9 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text("待办事项"),
+      ),
       body: TodoList(),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
