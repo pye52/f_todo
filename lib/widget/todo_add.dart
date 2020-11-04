@@ -27,6 +27,7 @@ class TodoAddBottomSheetState extends State<TodoAddBottomSheet> {
   Widget _buildInputTextField() {
     return TextField(
       controller: _contentController,
+      autofocus: true,
       decoration: InputDecoration(
         hintText: "请输入待办事项",
         fillColor: Color(0x30cccccc),
@@ -50,11 +51,13 @@ class TodoAddBottomSheetState extends State<TodoAddBottomSheet> {
       color: Colors.lightBlue,
       onPressed: () async {
         var content = _contentController.text;
+        var item;
         if (content.isNotEmpty) {
-          var newTodoId = await Todo(content: content).save();
-          Log.debug("新增待办事项: $newTodoId");
+          item = Todo(content: content);
+          var newTodoId = await item.save();
+          Log.debug("新增待办事项id: $newTodoId");
         }
-        Navigator.pop(context);
+        Navigator.pop(context, item);
       },
     );
   }
