@@ -13,6 +13,8 @@ class ListModel<E> {
   final dynamic removedItemBuilder;
   final List<E> _items;
 
+  List<E> get data => _items;
+
   AnimatedListState get _animatedList => listKey.currentState;
 
   void insert(int index, E item) {
@@ -25,7 +27,7 @@ class ListModel<E> {
     if (removedItem != null) {
       _animatedList.removeItem(index,
           (BuildContext context, Animation<double> animation) {
-        return removedItemBuilder(removedItem, context, animation);
+        return removedItemBuilder(index, removedItem, animation);
       });
     }
     return removedItem;

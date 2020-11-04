@@ -6,12 +6,12 @@ import 'package:f_todo/widget/todo_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
-class HomePage extends StatefulWidget {
+class TodoList extends StatefulWidget {
   @override
-  State createState() => HomePageState();
+  State createState() => TodoListState();
 }
 
-class HomePageState extends State<HomePage> {
+class TodoListState extends State<TodoList> {
   final GlobalKey<AnimatedListState> _listKey =
       new GlobalKey<AnimatedListState>();
   ListModel<Todo> _list;
@@ -41,6 +41,8 @@ class HomePageState extends State<HomePage> {
               index: index,
               item: item,
               animation: animation,
+              dismissCallback: (direction, item) =>
+                  _dismissItem(context, direction, item),
             ),
           );
           return AnimatedList(
@@ -51,6 +53,8 @@ class HomePageState extends State<HomePage> {
               index: index,
               item: _list[index],
               animation: animation,
+              dismissCallback: (direction, item) =>
+                  _dismissItem(context, direction, item),
             ),
           );
         },
@@ -81,5 +85,22 @@ class HomePageState extends State<HomePage> {
     if (item != null) {
       _list.insert(0, item);
     }
+  }
+
+  _dismissItem(context, direction, item) {
+    var index = _list.data.indexWhere((element) => element.id == item.id);
+    if (index != -1) {
+      _list.removeAt(index);
+    }
+    final snackBar = SnackBar(
+      content: Text("待办事项已删除"),
+      action: SnackBarAction(
+          label: "撤销",
+          onPressed: () async {
+            await item.save();
+            _list.insert(index, item);
+          }),
+    );
+    Scaffold.of(context).showSnackBar(snackBar);
   }
 }

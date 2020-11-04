@@ -3,14 +3,18 @@ import 'package:f_todo/todo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
+typedef DismissCallback = void Function(DismissDirection direction, Todo item);
+
 class TodoItem extends StatefulWidget {
   final int index;
   final Todo item;
   final Animation<double> animation;
+  final DismissCallback dismissCallback;
   TodoItem({
     @required this.index,
     @required this.item,
     @required this.animation,
+    @required this.dismissCallback,
   });
   @override
   State createState() => TodoItemState();
@@ -33,37 +37,48 @@ class TodoItemState extends State<TodoItem> {
       height: 60,
       alignment: Alignment.centerLeft,
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-      child: TextButton(
-        style: TextButton.styleFrom(
-          primary: item.completed ? Colors.grey : Colors.black,
-          backgroundColor: item.completed ? Colors.black26 : Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-        onPressed: () {
-          _onItemClick(item, completed: !item.completed);
+      child: Dismissible(
+        key: ValueKey(item),
+        confirmDismiss: (direction) async {
+          await item.delete();
+          widget.dismissCallback(direction, item);
+          return true;
         },
-        child: Row(
-          children: [
-            Checkbox(
-                value: item.completed,
-                onChanged: (value) async {
-                  _onItemClick(item, completed: value);
-                }),
-            Text(
-              item.content,
-              style: TextStyle(
-                fontWeight: FontWeight.normal,
-                fontSize: 16,
-                decoration: item.completed
-                    ? TextDecoration.lineThrough
-                    : TextDecoration.none,
-              ),
-            ),
-          ],
+        child: TextButton(
+          style: TextButton.styleFrom(
+            primary: item.completed ? Colors.grey : Colors.black,
+            backgroundColor: item.completed ? Colors.black26 : Colors.white,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+          onPressed: () {
+            _onItemClick(item, completed: !item.completed);
+          },
+          child: _buildItemChild(item),
         ),
       ),
+    );
+  }
+
+  Widget _buildItemChild(item) {
+    return Row(
+      children: [
+        Checkbox(
+            value: item.completed,
+            onChanged: (value) async {
+              _onItemClick(item, completed: value);
+            }),
+        Text(
+          item.content,
+          style: TextStyle(
+            fontWeight: FontWeight.normal,
+            fontSize: 16,
+            decoration: item.completed
+                ? TextDecoration.lineThrough
+                : TextDecoration.none,
+          ),
+        ),
+      ],
     );
   }
 

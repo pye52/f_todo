@@ -17,6 +17,7 @@ const tableTodo = SqfEntityTable(
     tableName: TODO_TABLE_NAME,
     primaryKeyName: "id",
     primaryKeyType: PrimaryKeyType.integer_auto_incremental,
+    useSoftDeleting: true,
     fields: [
       SqfEntityField('userId', DbType.integer),
       SqfEntityField("content", DbType.text),
