@@ -40,16 +40,23 @@ class TodoItemState extends State<TodoItem> {
       child: Dismissible(
         key: ValueKey(item),
         confirmDismiss: (direction) async {
-          await item.delete();
-          widget.dismissCallback(direction, item);
+          var result = await item.delete().whenComplete(() {
+            Log.debug("待办事项已标记删除: ${item.id}");
+            widget.dismissCallback(direction, item);
+          });
+          if (!result.success) {
+            Log.debug("删除失败: ${result.errorMessage}");
+            return false;
+          }
           return true;
         },
         child: TextButton(
           style: TextButton.styleFrom(
             primary: item.completed ? Colors.grey : Colors.black,
             backgroundColor: item.completed ? Colors.black26 : Colors.white,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
           ),
           onPressed: () {
             _onItemClick(item, completed: !item.completed);

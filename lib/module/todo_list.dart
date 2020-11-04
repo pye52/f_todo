@@ -81,26 +81,38 @@ class TodoListState extends State<TodoList> {
         ),
       ),
     );
-    Log.debug("添加结果: $item");
+    Log.debug("添加完毕: ${item?.id}");
     if (item != null) {
       _list.insert(0, item);
     }
   }
 
-  _dismissItem(context, direction, item) {
+  _dismissItem(context, direction, Todo item) {
     var index = _list.data.indexWhere((element) => element.id == item.id);
     if (index != -1) {
       _list.removeAt(index);
     }
+    var recover = false;
     final snackBar = SnackBar(
       content: Text("待办事项已删除"),
       action: SnackBarAction(
           label: "撤销",
-          onPressed: () async {
-            await item.save();
-            _list.insert(index, item);
+          onPressed: () {
+            item.recover().whenComplete(() {
+              // 撤销删除
+              recover = true;
+              _list.insert(index, item);
+              Log.debug("待办事项删除操作已撤销: ${item.id}");
+            });
           }),
     );
-    Scaffold.of(context).showSnackBar(snackBar);
+    Scaffold.of(context).showSnackBar(snackBar).closed.then((value) {
+      // 若删除动作未被撤销，则从数据库完全删除
+      if (!recover) {
+        item.delete(true).whenComplete(() {
+          Log.debug("待办事项已完全删除: ${item.id}");
+        });
+      }
+    });
   }
 }
