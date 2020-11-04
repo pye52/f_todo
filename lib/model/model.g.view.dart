@@ -18,11 +18,13 @@ class TodoAddState extends State {
   Todo todos;
   final _formKey = GlobalKey<FormState>();
   final TextEditingController txtUserId = TextEditingController();
+  final TextEditingController txtTitle = TextEditingController();
   final TextEditingController txtContent = TextEditingController();
 
   @override
   void initState() {
     txtUserId.text = todos.userId == null ? '' : todos.userId.toString();
+    txtTitle.text = todos.title == null ? '' : todos.title;
     txtContent.text = todos.content == null ? '' : todos.content;
 
     super.initState();
@@ -47,6 +49,7 @@ class TodoAddState extends State {
                 child: Column(
                   children: <Widget>[
                     buildRowUserId(),
+                    buildRowTitle(),
                     buildRowContent(),
                     buildRowCompleted(),
                     FlatButton(
@@ -81,6 +84,13 @@ class TodoAddState extends State {
       },
       controller: txtUserId,
       decoration: InputDecoration(labelText: 'UserId'),
+    );
+  }
+
+  Widget buildRowTitle() {
+    return TextFormField(
+      controller: txtTitle,
+      decoration: InputDecoration(labelText: 'Title'),
     );
   }
 
@@ -124,6 +134,7 @@ class TodoAddState extends State {
   void save() async {
     todos
       ..userId = int.tryParse(txtUserId.text)
+      ..title = txtTitle.text
       ..content = txtContent.text;
     await todos.save();
     if (todos.saveResult.success) {

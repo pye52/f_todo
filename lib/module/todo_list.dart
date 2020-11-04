@@ -68,7 +68,7 @@ class TodoListState extends State<TodoList> {
     );
   }
 
-  void _showBottomSheet(BuildContext context) async {
+  void _showBottomSheet(context) async {
     var item = await showModalBottomSheet<Todo>(
       context: context,
       isScrollControlled: true,
@@ -87,7 +87,7 @@ class TodoListState extends State<TodoList> {
     }
   }
 
-  _dismissItem(context, direction, Todo item) {
+  _dismissItem(context, direction, item) {
     var index = _list.data.indexWhere((element) => element.id == item.id);
     if (index != -1) {
       _list.removeAt(index);

@@ -76,7 +76,7 @@ class TodoItemState extends State<TodoItem> {
               _onItemClick(item, completed: value);
             }),
         Text(
-          item.content,
+          item.title,
           style: TextStyle(
             fontWeight: FontWeight.normal,
             fontSize: 16,
@@ -90,7 +90,7 @@ class TodoItemState extends State<TodoItem> {
   }
 
   void _onItemClick(item, {completed = true}) async {
-    Log.debug("待办事项id: ${item.id}, '${item.content}', 状态变更: $completed");
+    Log.debug("待办事项id: ${item.id}, '${item.title}', 状态变更: $completed");
     item.completed = completed;
     await item.save();
     setStateSafely(() {});

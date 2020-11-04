@@ -50,10 +50,10 @@ class TodoAddBottomSheetState extends State<TodoAddBottomSheet> {
       icon: Icon(Icons.done),
       color: Colors.lightBlue,
       onPressed: () async {
-        var content = _contentController.text;
+        var title = _contentController.text;
         var item;
-        if (content.isNotEmpty) {
-          item = Todo(content: content);
+        if (title.isNotEmpty) {
+          item = Todo(title: title);
           var newTodoId = await item.save();
           Log.debug("新增待办事项id: $newTodoId");
         }
