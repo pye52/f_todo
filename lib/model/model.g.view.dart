@@ -20,12 +20,22 @@ class TodoAddState extends State {
   final TextEditingController txtUserId = TextEditingController();
   final TextEditingController txtTitle = TextEditingController();
   final TextEditingController txtContent = TextEditingController();
+  final TextEditingController txtRemind = TextEditingController();
+  final TextEditingController txtCreatedTime = TextEditingController();
+
+  final TextEditingController txtCompletedTime = TextEditingController();
 
   @override
   void initState() {
     txtUserId.text = todos.userId == null ? '' : todos.userId.toString();
     txtTitle.text = todos.title == null ? '' : todos.title;
     txtContent.text = todos.content == null ? '' : todos.content;
+    txtRemind.text = todos.remind == null ? '' : todos.remind.toString();
+    txtCreatedTime.text =
+        todos.createdTime == null ? '' : todos.createdTime.toString();
+
+    txtCompletedTime.text =
+        todos.completedTime == null ? '' : todos.completedTime.toString();
 
     super.initState();
   }
@@ -51,7 +61,10 @@ class TodoAddState extends State {
                     buildRowUserId(),
                     buildRowTitle(),
                     buildRowContent(),
+                    buildRowRemind(),
+                    buildRowCreatedTime(),
                     buildRowCompleted(),
+                    buildRowCompletedTime(),
                     FlatButton(
                       child: saveButton(),
                       onPressed: () {
@@ -101,6 +114,34 @@ class TodoAddState extends State {
     );
   }
 
+  Widget buildRowRemind() {
+    return TextFormField(
+      validator: (value) {
+        if (value.isNotEmpty && int.tryParse(value) == null) {
+          return 'Please Enter valid number';
+        }
+
+        return null;
+      },
+      controller: txtRemind,
+      decoration: InputDecoration(labelText: 'Remind'),
+    );
+  }
+
+  Widget buildRowCreatedTime() {
+    return TextFormField(
+      validator: (value) {
+        if (value.isNotEmpty && int.tryParse(value) == null) {
+          return 'Please Enter valid number';
+        }
+
+        return null;
+      },
+      controller: txtCreatedTime,
+      decoration: InputDecoration(labelText: 'CreatedTime'),
+    );
+  }
+
   Widget buildRowCompleted() {
     return Row(
       children: <Widget>[
@@ -114,6 +155,20 @@ class TodoAddState extends State {
           },
         ),
       ],
+    );
+  }
+
+  Widget buildRowCompletedTime() {
+    return TextFormField(
+      validator: (value) {
+        if (value.isNotEmpty && int.tryParse(value) == null) {
+          return 'Please Enter valid number';
+        }
+
+        return null;
+      },
+      controller: txtCompletedTime,
+      decoration: InputDecoration(labelText: 'CompletedTime'),
     );
   }
 
@@ -135,7 +190,10 @@ class TodoAddState extends State {
     todos
       ..userId = int.tryParse(txtUserId.text)
       ..title = txtTitle.text
-      ..content = txtContent.text;
+      ..content = txtContent.text
+      ..remind = int.tryParse(txtRemind.text)
+      ..createdTime = int.tryParse(txtCreatedTime.text)
+      ..completedTime = int.tryParse(txtCompletedTime.text);
     await todos.save();
     if (todos.saveResult.success) {
       Navigator.pop(context, true);

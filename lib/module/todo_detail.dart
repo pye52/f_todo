@@ -26,6 +26,10 @@ class TodoDetailState extends State<TodoDetail> {
 
   @override
   Widget build(BuildContext context) {
+    DateTime now = DateTime.now();
+    if (widget.item.remind != null) {
+      now = DateTime.fromMillisecondsSinceEpoch(widget.item.remind);
+    }
     return Scaffold(
       appBar: AppBar(
         title: Text("任务详情"),
@@ -36,6 +40,16 @@ class TodoDetailState extends State<TodoDetail> {
           children: [
             _buildTitle(widget.item),
             _buildContent(widget.item),
+            const Padding(padding: const EdgeInsets.only(top: 16)),
+            CalendarDatePicker(
+              key: UniqueKey(),
+              initialDate: now,
+              firstDate: now,
+              lastDate: now.add(Duration(days: 365)),
+              onDateChanged: (date) {
+                Log.debug("选择了: $date");
+              },
+            )
           ],
         ),
       ),

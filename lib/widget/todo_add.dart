@@ -55,7 +55,10 @@ class TodoAddBottomSheetState extends State<TodoAddBottomSheet> {
           Navigator.pop(context);
           return;
         }
-        var item = Todo(title: title);
+        var item = Todo(
+          title: title,
+          createdTime: DateTime.now().millisecondsSinceEpoch,
+        );
         item.save().then((newTodoId) {
           Log.debug("新增待办事项id: $newTodoId");
           Navigator.pop(context, item);

@@ -22,7 +22,10 @@ const tableTodo = SqfEntityTable(
       SqfEntityField('userId', DbType.integer),
       SqfEntityField("title", DbType.text),
       SqfEntityField("content", DbType.text),
+      SqfEntityField("remind", DbType.integer),
+      SqfEntityField("createdTime", DbType.integer),
       SqfEntityField("completed", DbType.bool, defaultValue: false),
+      SqfEntityField("completedTime", DbType.integer),
     ]);
 
 const _DB_VERSION = 1;

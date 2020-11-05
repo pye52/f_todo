@@ -35,8 +35,11 @@ class TableTodo extends SqfEntityTableBase {
       SqfEntityFieldBase('userId', DbType.integer, isNotNull: false),
       SqfEntityFieldBase('title', DbType.text, isNotNull: false),
       SqfEntityFieldBase('content', DbType.text, isNotNull: false),
+      SqfEntityFieldBase('remind', DbType.integer, isNotNull: false),
+      SqfEntityFieldBase('createdTime', DbType.integer, isNotNull: false),
       SqfEntityFieldBase('completed', DbType.bool,
           defaultValue: false, isNotNull: false),
+      SqfEntityFieldBase('completedTime', DbType.integer, isNotNull: false),
     ];
     super.init();
   }
@@ -77,16 +80,19 @@ class Todo {
       this.userId,
       this.title,
       this.content,
+      this.remind,
+      this.createdTime,
       this.completed,
+      this.completedTime,
       this.isDeleted}) {
     _setDefaultValues();
   }
-  Todo.withFields(
-      this.userId, this.title, this.content, this.completed, this.isDeleted) {
+  Todo.withFields(this.userId, this.title, this.content, this.remind,
+      this.createdTime, this.completed, this.completedTime, this.isDeleted) {
     _setDefaultValues();
   }
-  Todo.withId(this.id, this.userId, this.title, this.content, this.completed,
-      this.isDeleted) {
+  Todo.withId(this.id, this.userId, this.title, this.content, this.remind,
+      this.createdTime, this.completed, this.completedTime, this.isDeleted) {
     _setDefaultValues();
   }
   Todo.fromMap(Map<String, dynamic> o, {bool setDefaultValues = true}) {
@@ -103,8 +109,17 @@ class Todo {
     if (o['content'] != null) {
       content = o['content'] as String;
     }
+    if (o['remind'] != null) {
+      remind = int.tryParse(o['remind'].toString());
+    }
+    if (o['createdTime'] != null) {
+      createdTime = int.tryParse(o['createdTime'].toString());
+    }
     if (o['completed'] != null) {
       completed = o['completed'] == 1 || o['completed'] == true;
+    }
+    if (o['completedTime'] != null) {
+      completedTime = int.tryParse(o['completedTime'].toString());
     }
     isDeleted = o['isDeleted'] != null
         ? o['isDeleted'] == 1 || o['isDeleted'] == true
@@ -115,7 +130,10 @@ class Todo {
   int userId;
   String title;
   String content;
+  int remind;
+  int createdTime;
   bool completed;
+  int completedTime;
   bool isDeleted;
 
   BoolResult saveResult;
@@ -147,8 +165,20 @@ class Todo {
       map['content'] = content;
     }
 
+    if (remind != null) {
+      map['remind'] = remind;
+    }
+
+    if (createdTime != null) {
+      map['createdTime'] = createdTime;
+    }
+
     if (completed != null) {
       map['completed'] = forQuery ? (completed ? 1 : 0) : completed;
+    }
+
+    if (completedTime != null) {
+      map['completedTime'] = completedTime;
     }
 
     if (isDeleted != null) {
@@ -178,8 +208,20 @@ class Todo {
       map['content'] = content;
     }
 
+    if (remind != null) {
+      map['remind'] = remind;
+    }
+
+    if (createdTime != null) {
+      map['createdTime'] = createdTime;
+    }
+
     if (completed != null) {
       map['completed'] = forQuery ? (completed ? 1 : 0) : completed;
+    }
+
+    if (completedTime != null) {
+      map['completedTime'] = completedTime;
     }
 
     if (isDeleted != null) {
@@ -200,11 +242,30 @@ class Todo {
   }
 
   List<dynamic> toArgs() {
-    return [userId, title, content, completed, isDeleted];
+    return [
+      userId,
+      title,
+      content,
+      remind,
+      createdTime,
+      completed,
+      completedTime,
+      isDeleted
+    ];
   }
 
   List<dynamic> toArgsWithIds() {
-    return [id, userId, title, content, completed, isDeleted];
+    return [
+      id,
+      userId,
+      title,
+      content,
+      remind,
+      createdTime,
+      completed,
+      completedTime,
+      isDeleted
+    ];
   }
 
   static Future<List<Todo>> fromWebUrl(String url,
@@ -313,7 +374,7 @@ class Todo {
   ///
   /// Returns a <List<BoolResult>>
   static Future<List<dynamic>> saveAll(List<Todo> todos) async {
-    // final results = _mnTodo.saveAll('INSERT OR REPLACE INTO todos (id,userId, title, content, completed,isDeleted)  VALUES (?,?,?,?,?,?)',todos);
+    // final results = _mnTodo.saveAll('INSERT OR REPLACE INTO todos (id,userId, title, content, remind, createdTime, completed, completedTime,isDeleted)  VALUES (?,?,?,?,?,?,?,?,?)',todos);
     // return results; removed in sqfentity_gen 1.3.0+6
     await DbModel().batchStart();
     for (final obj in todos) {
@@ -336,8 +397,18 @@ class Todo {
   Future<int> upsert() async {
     try {
       if (await _mnTodo.rawInsert(
-              'INSERT OR REPLACE INTO todos (id,userId, title, content, completed,isDeleted)  VALUES (?,?,?,?,?,?)',
-              [id, userId, title, content, completed, isDeleted]) ==
+              'INSERT OR REPLACE INTO todos (id,userId, title, content, remind, createdTime, completed, completedTime,isDeleted)  VALUES (?,?,?,?,?,?,?,?,?)',
+              [
+                id,
+                userId,
+                title,
+                content,
+                remind,
+                createdTime,
+                completed,
+                completedTime,
+                isDeleted
+              ]) ==
           1) {
         saveResult = BoolResult(
             success: true, successMessage: 'Todo id=$id updated successfully');
@@ -361,7 +432,7 @@ class Todo {
   /// Returns a BoolCommitResult
   Future<BoolCommitResult> upsertAll(List<Todo> todos) async {
     final results = await _mnTodo.rawInsertAll(
-        'INSERT OR REPLACE INTO todos (id,userId, title, content, completed,isDeleted)  VALUES (?,?,?,?,?,?)',
+        'INSERT OR REPLACE INTO todos (id,userId, title, content, remind, createdTime, completed, completedTime,isDeleted)  VALUES (?,?,?,?,?,?,?,?,?)',
         todos);
     return results;
   }
@@ -837,9 +908,25 @@ class TodoFilterBuilder extends SearchCriteria {
     return _content = setField(_content, 'content', DbType.text);
   }
 
+  TodoField _remind;
+  TodoField get remind {
+    return _remind = setField(_remind, 'remind', DbType.integer);
+  }
+
+  TodoField _createdTime;
+  TodoField get createdTime {
+    return _createdTime = setField(_createdTime, 'createdTime', DbType.integer);
+  }
+
   TodoField _completed;
   TodoField get completed {
     return _completed = setField(_completed, 'completed', DbType.bool);
+  }
+
+  TodoField _completedTime;
+  TodoField get completedTime {
+    return _completedTime =
+        setField(_completedTime, 'completedTime', DbType.integer);
   }
 
   TodoField _isDeleted;
@@ -1237,10 +1324,28 @@ class TodoFields {
         _fContent ?? SqlSyntax.setField(_fContent, 'content', DbType.text);
   }
 
+  static TableField _fRemind;
+  static TableField get remind {
+    return _fRemind =
+        _fRemind ?? SqlSyntax.setField(_fRemind, 'remind', DbType.integer);
+  }
+
+  static TableField _fCreatedTime;
+  static TableField get createdTime {
+    return _fCreatedTime = _fCreatedTime ??
+        SqlSyntax.setField(_fCreatedTime, 'createdTime', DbType.integer);
+  }
+
   static TableField _fCompleted;
   static TableField get completed {
     return _fCompleted = _fCompleted ??
         SqlSyntax.setField(_fCompleted, 'completed', DbType.bool);
+  }
+
+  static TableField _fCompletedTime;
+  static TableField get completedTime {
+    return _fCompletedTime = _fCompletedTime ??
+        SqlSyntax.setField(_fCompletedTime, 'completedTime', DbType.integer);
   }
 
   static TableField _fIsDeleted;
