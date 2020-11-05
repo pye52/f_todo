@@ -25,10 +25,8 @@ class TodoListState extends State<TodoList> {
     _fetchData();
   }
 
-  void _fetchData() async {
-    var data = await _dataSource.queryAllTodo();
-    await Future.delayed(Duration(seconds: 1));
-    _streamController.sink.add(data);
+  void _fetchData() {
+    _dataSource.queryAllTodo().then((data) => _streamController.sink.add(data));
   }
 
   @override
@@ -56,8 +54,9 @@ class TodoListState extends State<TodoList> {
           _list = ListModel(
             listKey: _listKey,
             initialItems: snapshot.data,
-            removedItemBuilder: (index, item, animation) =>
-                AnimatedContainer(duration: Duration(seconds: 1)),
+            removedItemBuilder: (index, item, animation) {
+              return Container();
+            },
           );
           return RefreshIndicator(
             child: AnimatedList(
@@ -71,9 +70,9 @@ class TodoListState extends State<TodoList> {
                 onItemDismissed: _dismissItem,
               ),
             ),
-            onRefresh: () async {
-              await Future.delayed(const Duration(milliseconds: 500));
-              _fetchData();
+            onRefresh: () {
+              Future.delayed(const Duration(milliseconds: 500))
+                  .then((value) => _fetchData());
               return;
             },
           );
@@ -100,8 +99,8 @@ class TodoListState extends State<TodoList> {
     super.deactivate();
   }
 
-  void _showBottomSheet(BuildContext context) async {
-    var item = await showModalBottomSheet<Todo>(
+  void _showBottomSheet(BuildContext context) {
+    showModalBottomSheet<Todo>(
       context: context,
       isScrollControlled: true,
       builder: (context) {
@@ -114,10 +113,11 @@ class TodoListState extends State<TodoList> {
           ),
         );
       },
-    );
-    if (item != null) {
-      _list.insert(0, item);
-    }
+    ).then((item) {
+      if (item != null) {
+        _list.insert(0, item);
+      }
+    });
   }
 
   void _dismissItem(
@@ -131,11 +131,11 @@ class TodoListState extends State<TodoList> {
     final snackBar = SnackBar(
       content: Text("待办事项已删除"),
       action: SnackBarAction(
-          label: "撤销",
-          onPressed: () async {
-            await item.save();
-            _list.insert(index, item);
-          }),
+        label: "撤销",
+        onPressed: () => item.save().then((value) {
+          _list.insert(index, item);
+        }),
+      ),
     );
     Scaffold.of(context).showSnackBar(snackBar);
   }

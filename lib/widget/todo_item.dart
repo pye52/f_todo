@@ -45,9 +45,11 @@ class TodoItemState extends State<TodoItem> {
       child: Dismissible(
         key: ValueKey(item),
         confirmDismiss: (direction) async {
-          await item.delete();
-          widget.onItemDismissed(context, direction, item);
-          return true;
+          var result = await item.delete();
+          if (result.success) {
+            widget.onItemDismissed(context, direction, item);
+          }
+          return result.success;
         },
         child: TextButton(
           style: TextButton.styleFrom(
@@ -78,7 +80,7 @@ class TodoItemState extends State<TodoItem> {
       children: [
         Checkbox(
             value: item.completed,
-            onChanged: (completed) async {
+            onChanged: (completed) {
               Log.debug(
                   "待办事项id: ${item.id}, '${item.title}', 状态变更: $completed");
               item.completed = completed;

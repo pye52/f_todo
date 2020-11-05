@@ -49,15 +49,17 @@ class TodoAddBottomSheetState extends State<TodoAddBottomSheet> {
     return IconButton(
       icon: Icon(Icons.done),
       color: Colors.lightBlue,
-      onPressed: () async {
+      onPressed: () {
         var title = _contentController.text;
-        var item;
-        if (title.isNotEmpty) {
-          item = Todo(title: title);
-          var newTodoId = await item.save();
-          Log.debug("新增待办事项id: $newTodoId");
+        if (title.isEmpty) {
+          Navigator.pop(context);
+          return;
         }
-        Navigator.pop(context, item);
+        var item = Todo(title: title);
+        item.save().then((newTodoId) {
+          Log.debug("新增待办事项id: $newTodoId");
+          Navigator.pop(context, item);
+        });
       },
     );
   }

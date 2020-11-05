@@ -11,6 +11,7 @@ class TodoDetail extends StatefulWidget {
 }
 
 class TodoDetailState extends State<TodoDetail> {
+  final FocusNode _contentFocusNode = FocusNode();
   TextEditingController _titleController;
   TextEditingController _contentController;
   bool _completed;
@@ -27,7 +28,7 @@ class TodoDetailState extends State<TodoDetail> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("详情"),
+        title: Text("任务详情"),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -86,8 +87,9 @@ class TodoDetailState extends State<TodoDetail> {
                       SnackBar(content: Text("任务保存异常")),
                     );
                   });
+                  _contentFocusNode.requestFocus();
                 },
-                textInputAction: TextInputAction.done,
+                textInputAction: TextInputAction.next,
               ),
             ),
           ],
@@ -104,6 +106,7 @@ class TodoDetailState extends State<TodoDetail> {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: TextField(
+            focusNode: _contentFocusNode,
             controller: _contentController,
             decoration: InputDecoration(
               border: InputBorder.none,
@@ -127,6 +130,7 @@ class TodoDetailState extends State<TodoDetail> {
                   SnackBar(content: Text("任务保存异常")),
                 );
               });
+              _contentFocusNode.unfocus();
             },
             textInputAction: TextInputAction.done,
           ),
