@@ -27,12 +27,13 @@ class TableTodo extends SqfEntityTableBase {
     tableName = 'todos';
     primaryKeyName = 'id';
     primaryKeyType = PrimaryKeyType.integer_auto_incremental;
-    useSoftDeleting = false;
+    useSoftDeleting = true;
     // when useSoftDeleting is true, creates a field named 'isDeleted' on the table, and set to '1' this field when item deleted (does not hard delete)
 
     // declare fields
     fields = [
       SqfEntityFieldBase('userId', DbType.integer, isNotNull: false),
+      SqfEntityFieldBase('title', DbType.text, isNotNull: false),
       SqfEntityFieldBase('content', DbType.text, isNotNull: false),
       SqfEntityFieldBase('completed', DbType.bool,
           defaultValue: false, isNotNull: false),
@@ -71,13 +72,21 @@ class DbModel extends SqfEntityModelProvider {
 // BEGIN ENTITIES
 // region Todo
 class Todo {
-  Todo({this.id, this.userId, this.content, this.completed}) {
+  Todo(
+      {this.id,
+      this.userId,
+      this.title,
+      this.content,
+      this.completed,
+      this.isDeleted}) {
     _setDefaultValues();
   }
-  Todo.withFields(this.userId, this.content, this.completed) {
+  Todo.withFields(
+      this.userId, this.title, this.content, this.completed, this.isDeleted) {
     _setDefaultValues();
   }
-  Todo.withId(this.id, this.userId, this.content, this.completed) {
+  Todo.withId(this.id, this.userId, this.title, this.content, this.completed,
+      this.isDeleted) {
     _setDefaultValues();
   }
   Todo.fromMap(Map<String, dynamic> o, {bool setDefaultValues = true}) {
@@ -88,23 +97,31 @@ class Todo {
     if (o['userId'] != null) {
       userId = int.tryParse(o['userId'].toString());
     }
+    if (o['title'] != null) {
+      title = o['title'] as String;
+    }
     if (o['content'] != null) {
       content = o['content'] as String;
     }
     if (o['completed'] != null) {
       completed = o['completed'] == 1 || o['completed'] == true;
     }
+    isDeleted = o['isDeleted'] != null
+        ? o['isDeleted'] == 1 || o['isDeleted'] == true
+        : null;
   }
   // FIELDS (Todo)
   int id;
   int userId;
+  String title;
   String content;
   bool completed;
+  bool isDeleted;
 
   BoolResult saveResult;
   // end FIELDS (Todo)
 
-  static const bool _softDeleteActivated = false;
+  static const bool _softDeleteActivated = true;
   TodoManager __mnTodo;
 
   TodoManager get _mnTodo {
@@ -122,12 +139,20 @@ class Todo {
       map['userId'] = userId;
     }
 
+    if (title != null) {
+      map['title'] = title;
+    }
+
     if (content != null) {
       map['content'] = content;
     }
 
     if (completed != null) {
       map['completed'] = forQuery ? (completed ? 1 : 0) : completed;
+    }
+
+    if (isDeleted != null) {
+      map['isDeleted'] = forQuery ? (isDeleted ? 1 : 0) : isDeleted;
     }
 
     return map;
@@ -145,12 +170,20 @@ class Todo {
       map['userId'] = userId;
     }
 
+    if (title != null) {
+      map['title'] = title;
+    }
+
     if (content != null) {
       map['content'] = content;
     }
 
     if (completed != null) {
       map['completed'] = forQuery ? (completed ? 1 : 0) : completed;
+    }
+
+    if (isDeleted != null) {
+      map['isDeleted'] = forQuery ? (isDeleted ? 1 : 0) : isDeleted;
     }
 
     return map;
@@ -167,11 +200,11 @@ class Todo {
   }
 
   List<dynamic> toArgs() {
-    return [userId, content, completed];
+    return [userId, title, content, completed, isDeleted];
   }
 
   List<dynamic> toArgsWithIds() {
-    return [id, userId, content, completed];
+    return [id, userId, title, content, completed, isDeleted];
   }
 
   static Future<List<Todo>> fromWebUrl(String url,
@@ -280,7 +313,7 @@ class Todo {
   ///
   /// Returns a <List<BoolResult>>
   static Future<List<dynamic>> saveAll(List<Todo> todos) async {
-    // final results = _mnTodo.saveAll('INSERT OR REPLACE INTO todos (id,userId, content, completed)  VALUES (?,?,?,?)',todos);
+    // final results = _mnTodo.saveAll('INSERT OR REPLACE INTO todos (id,userId, title, content, completed,isDeleted)  VALUES (?,?,?,?,?,?)',todos);
     // return results; removed in sqfentity_gen 1.3.0+6
     await DbModel().batchStart();
     for (final obj in todos) {
@@ -303,8 +336,8 @@ class Todo {
   Future<int> upsert() async {
     try {
       if (await _mnTodo.rawInsert(
-              'INSERT OR REPLACE INTO todos (id,userId, content, completed)  VALUES (?,?,?,?)',
-              [id, userId, content, completed]) ==
+              'INSERT OR REPLACE INTO todos (id,userId, title, content, completed,isDeleted)  VALUES (?,?,?,?,?,?)',
+              [id, userId, title, content, completed, isDeleted]) ==
           1) {
         saveResult = BoolResult(
             success: true, successMessage: 'Todo id=$id updated successfully');
@@ -328,7 +361,7 @@ class Todo {
   /// Returns a BoolCommitResult
   Future<BoolCommitResult> upsertAll(List<Todo> todos) async {
     final results = await _mnTodo.rawInsertAll(
-        'INSERT OR REPLACE INTO todos (id,userId, content, completed)  VALUES (?,?,?,?)',
+        'INSERT OR REPLACE INTO todos (id,userId, title, content, completed,isDeleted)  VALUES (?,?,?,?,?,?)',
         todos);
     return results;
   }
@@ -338,13 +371,25 @@ class Todo {
   /// <returns>BoolResult res.success=Deleted, not res.success=Can not deleted
   Future<BoolResult> delete([bool hardDelete = false]) async {
     print('SQFENTITIY: delete Todo invoked (id=$id)');
-    if (!_softDeleteActivated || hardDelete) {
+    if (!_softDeleteActivated || hardDelete || isDeleted) {
       return _mnTodo
           .delete(QueryParams(whereString: 'id=?', whereArguments: [id]));
     } else {
       return _mnTodo.updateBatch(
           QueryParams(whereString: 'id=?', whereArguments: [id]),
           {'isDeleted': 1});
+    }
+  }
+
+  /// Recover Todo>
+
+  /// <returns>BoolResult res.success=Recovered, not res.success=Can not recovered
+  Future<BoolResult> recover([bool recoverChilds = true]) async {
+    print('SQFENTITIY: recover Todo invoked (id=$id)');
+    {
+      return _mnTodo.updateBatch(
+          QueryParams(whereString: 'id=?', whereArguments: [id]),
+          {'isDeleted': 0});
     }
   }
 
@@ -364,6 +409,7 @@ class Todo {
 
   void _setDefaultValues() {
     completed = completed ?? false;
+    isDeleted = isDeleted ?? false;
   }
   // END METHODS
   // CUSTOM CODES
@@ -781,6 +827,11 @@ class TodoFilterBuilder extends SearchCriteria {
     return _userId = setField(_userId, 'userId', DbType.integer);
   }
 
+  TodoField _title;
+  TodoField get title {
+    return _title = setField(_title, 'title', DbType.text);
+  }
+
   TodoField _content;
   TodoField get content {
     return _content = setField(_content, 'content', DbType.text);
@@ -789,6 +840,11 @@ class TodoFilterBuilder extends SearchCriteria {
   TodoField _completed;
   TodoField get completed {
     return _completed = setField(_completed, 'completed', DbType.bool);
+  }
+
+  TodoField _isDeleted;
+  TodoField get isDeleted {
+    return _isDeleted = setField(_isDeleted, 'isDeleted', DbType.bool);
   }
 
   bool _getIsDeleted;
@@ -901,6 +957,14 @@ class TodoFilterBuilder extends SearchCriteria {
       r = await _obj._mnTodo.delete(qparams);
     }
     return r;
+  }
+
+  /// Recover List<Todo> bulk by query
+  Future<BoolResult> recover() async {
+    _getIsDeleted = true;
+    _buildParameters();
+    print('SQFENTITIY: recover Todo bulk invoked');
+    return _obj._mnTodo.updateBatch(qparams, {'isDeleted': 0});
   }
 
   /// using:
@@ -1161,6 +1225,12 @@ class TodoFields {
         _fUserId ?? SqlSyntax.setField(_fUserId, 'userId', DbType.integer);
   }
 
+  static TableField _fTitle;
+  static TableField get title {
+    return _fTitle =
+        _fTitle ?? SqlSyntax.setField(_fTitle, 'title', DbType.text);
+  }
+
   static TableField _fContent;
   static TableField get content {
     return _fContent =
@@ -1171,6 +1241,12 @@ class TodoFields {
   static TableField get completed {
     return _fCompleted = _fCompleted ??
         SqlSyntax.setField(_fCompleted, 'completed', DbType.bool);
+  }
+
+  static TableField _fIsDeleted;
+  static TableField get isDeleted {
+    return _fIsDeleted = _fIsDeleted ??
+        SqlSyntax.setField(_fIsDeleted, 'isDeleted', DbType.integer);
   }
 }
 // endregion TodoFields
@@ -1197,12 +1273,12 @@ class DbModelSequenceManager extends SqfEntityProvider {
 // BEGIN CONTROLLER (Todo)
 
 class TodoController extends Todo {
-  String formListTitleField = 'content';
-  String formListSubTitleField = 'userId';
+  String formListTitleField = 'title';
+  String formListSubTitleField = 'content';
   static SQFViewList getController = SQFViewList(
     TodoController(),
     primaryKeyName: 'id',
-    useSoftDeleting: false,
+    useSoftDeleting: true,
   );
   Map<String, String> subMenu() {
     final menu = <String, String>{};

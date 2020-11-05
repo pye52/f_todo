@@ -7,7 +7,7 @@ class ListModel<E> {
     Iterable<E> initialItems,
   })  : assert(listKey != null),
         assert(removedItemBuilder != null),
-        _items = new List<E>.from(initialItems ?? <E>[]);
+        _items = List.from(initialItems ?? List.empty());
 
   final GlobalKey<AnimatedListState> listKey;
   final dynamic removedItemBuilder;
@@ -20,6 +20,11 @@ class ListModel<E> {
   void insert(int index, E item) {
     _items.insert(index, item);
     _animatedList.insertItem(index);
+  }
+
+  void refresh(List<E> list) {
+    _items.clear();
+    _items.addAll(list);
   }
 
   E removeAt(int index) {
