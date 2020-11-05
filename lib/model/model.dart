@@ -20,7 +20,7 @@ const tableTodo = SqfEntityTable(
     useSoftDeleting: true,
     fields: [
       SqfEntityField('userId', DbType.integer),
-      SqfEntityField('title', DbType.text),
+      SqfEntityField("title", DbType.text),
       SqfEntityField("content", DbType.text),
       SqfEntityField("completed", DbType.bool, defaultValue: false),
     ]);
