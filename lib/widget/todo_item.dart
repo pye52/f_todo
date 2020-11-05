@@ -30,7 +30,10 @@ class TodoItemState extends State<TodoItem> {
           .drive(CurveTween(curve: Curves.linear))
           .drive(Tween<Offset>(begin: Offset(1, 0), end: Offset(0, 0))),
       transformHitTests: !widget.animation.isCompleted,
-      child: _child(widget.item),
+      child: HeroTodoItem(
+        item: widget.item,
+        child: _child(widget.item),
+      ),
     );
   }
 
@@ -56,7 +59,12 @@ class TodoItemState extends State<TodoItem> {
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => TodoDetail(item: item)),
+              MaterialPageRoute(
+                builder: (context) => HeroTodoItem(
+                  item: item,
+                  child: TodoDetail(item: item),
+                ),
+              ),
             );
           },
           child: _buildItemChild(item),
@@ -89,6 +97,23 @@ class TodoItemState extends State<TodoItem> {
           ),
         ),
       ],
+    );
+  }
+}
+
+class HeroTodoItem extends StatelessWidget {
+  final Todo item;
+  final Widget child;
+  HeroTodoItem({
+    @required this.item,
+    @required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Hero(
+      tag: "${item.id}/${item.title}",
+      child: child,
     );
   }
 }

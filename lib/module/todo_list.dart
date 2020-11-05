@@ -56,12 +56,8 @@ class TodoListState extends State<TodoList> {
           _list = ListModel(
             listKey: _listKey,
             initialItems: snapshot.data,
-            removedItemBuilder: (index, item, animation) => TodoItem(
-              index: index,
-              item: item,
-              animation: animation,
-              onItemDismissed: _dismissItem,
-            ),
+            removedItemBuilder: (index, item, animation) =>
+                AnimatedContainer(duration: Duration(seconds: 1)),
           );
           return RefreshIndicator(
             child: AnimatedList(
@@ -130,6 +126,7 @@ class TodoListState extends State<TodoList> {
     if (index == -1) {
       return;
     }
+    Scaffold.of(context).hideCurrentSnackBar();
     _list.removeAt(index);
     final snackBar = SnackBar(
       content: Text("待办事项已删除"),
