@@ -70,9 +70,9 @@ class TodoListState extends State<TodoList> {
                 onItemDismissed: _dismissItem,
               ),
             ),
-            onRefresh: () {
-              Future.delayed(const Duration(milliseconds: 500))
-                  .then((value) => _fetchData());
+            onRefresh: () async {
+              await Future.delayed(const Duration(milliseconds: 500));
+              await _fetchData();
               return;
             },
           );

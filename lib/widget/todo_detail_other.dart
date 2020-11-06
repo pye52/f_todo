@@ -1,8 +1,10 @@
 import 'package:f_todo/model/model.dart';
+import 'package:f_todo/provider/TodoProvider.dart';
 import 'package:f_todo/todo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 const double _CELL_HEIGHT = 50;
 const double _CELL_FONT_SIZE = 14;
@@ -49,7 +51,7 @@ class _TodoDetailRemindState extends State<TodoDetailRemind> {
         alignment: Alignment.centerLeft,
         child: TextButton(
           focusNode: _focusNode,
-          child: Text("提醒: ${_remindDate?.format(_formatter) ?? "选择提醒时间"}"),
+          child: Text(_remindDate?.format(_formatter) ?? "选择提醒时间"),
           style: TextButton.styleFrom(
             primary: Colors.black,
             textStyle: TextStyle(
@@ -147,7 +149,7 @@ class TodoCreatedTime extends StatelessWidget {
           const Icon(Icons.date_range_rounded),
           const Padding(padding: const EdgeInsets.only(left: 24)),
           Text(
-            "创建: ${item.createdTime?.formatDateTim()?.format(_formatter)}",
+            "创建于 ${item.createdTime?.formatDateTim()?.format(_formatter)}",
             style: TextStyle(
               fontSize: _CELL_FONT_SIZE,
             ),
@@ -204,7 +206,7 @@ class _TodoDetailAddCalendarState extends State<TodoDetailAddCalendar> {
 
 class TodoDetailCompletedTime extends StatelessWidget {
   final Todo item;
-  final DateFormat _formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+  final DateFormat _formatter = DateFormat('完成于 yyyy-MM-dd HH:mm:ss');
   TodoDetailCompletedTime({Key key, @required this.item}) : super(key: key);
   @override
   Widget build(BuildContext context) {
@@ -213,13 +215,19 @@ class TodoDetailCompletedTime extends StatelessWidget {
       child: Row(
         children: [
           const Padding(padding: const EdgeInsets.only(left: 16)),
-          const Icon(Icons.done),
+          Icon(item.completed ? Icons.done : Icons.av_timer),
           const Padding(padding: const EdgeInsets.only(left: 24)),
-          Text(
-            "完成: ${item.completedTime?.formatDateTim()?.format(_formatter) ?? "未完成"}",
-            style: TextStyle(
-              fontSize: _CELL_FONT_SIZE,
-            ),
+          Consumer<TodoProvider>(
+            builder: (context, provider, child) {
+              Todo item = provider.item;
+              return Text(
+                item.completedTime?.formatDateTim()?.format(_formatter) ??
+                    "未完成",
+                style: TextStyle(
+                  fontSize: _CELL_FONT_SIZE,
+                ),
+              );
+            },
           ),
         ],
       ),
