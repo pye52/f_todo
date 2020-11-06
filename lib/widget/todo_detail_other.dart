@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 
+const double _CELL_HEIGHT = 50;
+const double _CELL_FONT_SIZE = 14;
+
 class TodoDetailRemind extends StatefulWidget {
   final Todo item;
   TodoDetailRemind({@required this.item});
@@ -13,6 +16,7 @@ class TodoDetailRemind extends StatefulWidget {
 
 class _TodoDetailRemindState extends State<TodoDetailRemind> {
   final DateFormat _formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+  final FocusNode _focusNode = FocusNode();
   DateTime _remindDate;
 
   @override
@@ -26,7 +30,7 @@ class _TodoDetailRemindState extends State<TodoDetailRemind> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 50,
+      height: _CELL_HEIGHT,
       child: Row(
         children: [
           const Padding(padding: const EdgeInsets.only(left: 16)),
@@ -44,16 +48,18 @@ class _TodoDetailRemindState extends State<TodoDetailRemind> {
       child: Align(
         alignment: Alignment.centerLeft,
         child: TextButton(
-          child: Text("提醒: ${_remindDate?.format(_formatter)}" ?? "选择提醒时间"),
+          focusNode: _focusNode,
+          child: Text("提醒: ${_remindDate?.format(_formatter) ?? "选择提醒时间"}"),
           style: TextButton.styleFrom(
             primary: Colors.black,
             textStyle: TextStyle(
-              fontSize: 14,
+              fontSize: _CELL_FONT_SIZE,
               fontWeight: FontWeight.normal,
             ),
             padding: const EdgeInsets.symmetric(horizontal: 8),
           ),
           onPressed: () {
+            _focusNode.requestFocus();
             DateTime now = DateTime.now();
             DateTime storeDateTime = _remindDate ?? now;
             TimeOfDay storeTimeOfDay = TimeOfDay(
@@ -95,6 +101,9 @@ class _TodoDetailRemindState extends State<TodoDetailRemind> {
                 .then((value) {
                   setStateSafely(() {});
                 })
+                .whenComplete(() {
+                  _focusNode.unfocus();
+                })
                 .catchError((e) {
                   Log.debug("待办事项提醒时间变更异常: ${e?.toString()}");
                 });
@@ -131,7 +140,7 @@ class TodoCreatedTime extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 50,
+      height: _CELL_HEIGHT,
       child: Row(
         children: [
           const Padding(padding: const EdgeInsets.only(left: 16)),
@@ -140,7 +149,76 @@ class TodoCreatedTime extends StatelessWidget {
           Text(
             "创建: ${item.createdTime?.formatDateTim()?.format(_formatter)}",
             style: TextStyle(
-              fontSize: 14,
+              fontSize: _CELL_FONT_SIZE,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class TodoDetailAddCalendar extends StatefulWidget {
+  final Todo item;
+  TodoDetailAddCalendar({@required this.item});
+  @override
+  _TodoDetailAddCalendarState createState() => _TodoDetailAddCalendarState();
+}
+
+class _TodoDetailAddCalendarState extends State<TodoDetailAddCalendar> {
+  bool _addToSystem = true;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: _CELL_HEIGHT,
+      child: Row(
+        children: [
+          const Padding(padding: const EdgeInsets.only(left: 16)),
+          const Icon(Icons.add_to_photos),
+          const Padding(padding: const EdgeInsets.only(left: 24)),
+          Expanded(child: Text("是否添加到系统日历")),
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 8),
+            child: OutlinedButton(
+              onPressed: _addToSystem ? null : () {},
+              child: Text(
+                _addToSystem ?? false ? "已添加" : "添加",
+                style: TextStyle(
+                  fontSize: _CELL_FONT_SIZE,
+                  fontWeight: FontWeight.normal,
+                ),
+              ),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+}
+
+class TodoDetailCompletedTime extends StatelessWidget {
+  final Todo item;
+  final DateFormat _formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+  TodoDetailCompletedTime({Key key, @required this.item}) : super(key: key);
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: _CELL_HEIGHT,
+      child: Row(
+        children: [
+          const Padding(padding: const EdgeInsets.only(left: 16)),
+          const Icon(Icons.done),
+          const Padding(padding: const EdgeInsets.only(left: 24)),
+          Text(
+            "完成: ${item.completedTime?.formatDateTim()?.format(_formatter) ?? "未完成"}",
+            style: TextStyle(
+              fontSize: _CELL_FONT_SIZE,
             ),
           ),
         ],

@@ -1,6 +1,6 @@
 import 'package:f_todo/model/model.dart';
 import 'package:f_todo/widget/todo_detail_content.dart';
-import 'package:f_todo/widget/todo_detail_remind.dart';
+import 'package:f_todo/widget/todo_detail_other.dart';
 import 'package:f_todo/widget/todo_detail_title.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -15,10 +15,7 @@ class TodoDetail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("任务详情"),
-        centerTitle: true,
-      ),
+      appBar: AppBar(),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -34,7 +31,20 @@ class TodoDetail extends StatelessWidget {
                       indent: 4,
                       endIndent: 4,
                     ),
+                    TodoDetailAddCalendar(item: item),
+                    const Divider(
+                      indent: 4,
+                      endIndent: 4,
+                    ),
                     TodoCreatedTime(item: item),
+                    const Divider(
+                      indent: 4,
+                      endIndent: 4,
+                    ),
+                    TodoDetailCompletedTime(
+                      key: ValueKey(item.completed),
+                      item: item,
+                    ),
                   ],
                 ),
               ),

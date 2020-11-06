@@ -42,6 +42,8 @@ dependencies:
   logger: ^0.9.4
   # 本地路径
   path_provider: ^1.6.22
+  # 权限管理
+  permission_handler: ^5.0.1+1
 
 dev_dependencies:
   flutter_test:

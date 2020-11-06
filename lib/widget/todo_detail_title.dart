@@ -41,6 +41,7 @@ class _TodoDetailTitleState extends State<TodoDetailTitle> {
             value: _completed,
             onChanged: (completed) {
               item.completed = completed;
+              item.completedTime = DateTime.now().millisecondsSinceEpoch;
               item.save().whenComplete(() {
                 setStateSafely(() {
                   _completed = completed;
