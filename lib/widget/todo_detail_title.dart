@@ -1,5 +1,5 @@
 import 'package:f_todo/model/model.dart';
-import 'package:f_todo/provider/TodoProvider.dart';
+import 'package:f_todo/provider/todo_detail_provider.dart';
 import 'package:f_todo/todo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -29,12 +29,12 @@ class _TodoDetailTitleState extends State<TodoDetailTitle> {
       margin: const EdgeInsets.all(8),
       alignment: Alignment.centerLeft,
       child: Card(
-        child: _buildTitle(context.watch<TodoProvider>()),
+        child: _buildTitle(context.watch<TodoDetailProvider>()),
       ),
     );
   }
 
-  Widget _buildTitle(TodoProvider provider) {
+  Widget _buildTitle(TodoDetailProvider provider) {
     Todo item = provider.item;
     return Row(
       children: [

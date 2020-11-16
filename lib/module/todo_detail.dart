@@ -1,5 +1,5 @@
 import 'package:f_todo/model/model.dart';
-import 'package:f_todo/provider/TodoProvider.dart';
+import 'package:f_todo/provider/todo_detail_provider.dart';
 import 'package:f_todo/widget/todo_detail_content.dart';
 import 'package:f_todo/widget/todo_detail_other.dart';
 import 'package:f_todo/widget/todo_detail_title.dart';
@@ -20,7 +20,7 @@ class TodoDetail extends StatelessWidget {
       appBar: AppBar(),
       body: SingleChildScrollView(
         child: ChangeNotifierProvider(
-          create: (context) => TodoProvider(item: item),
+          create: (context) => TodoDetailProvider(item: item),
           builder: (context, child) {
             return child;
           },

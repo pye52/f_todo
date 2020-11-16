@@ -1,12 +1,16 @@
 import 'dart:async';
+import 'dart:io';
 
+import 'package:async/async.dart';
 import 'package:f_todo/model/list_model.dart';
 import 'package:f_todo/model/model.dart';
 import 'package:f_todo/repository/todo_repository.dart';
+import 'package:f_todo/todo.dart';
 import 'package:f_todo/widget/todo_add.dart';
 import 'package:f_todo/widget/todo_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class TodoList extends StatefulWidget {
   @override
@@ -16,6 +20,7 @@ class TodoList extends StatefulWidget {
 class TodoListState extends State<TodoList> {
   final TodoDataSource _dataSource = TodoDataSource();
   final StreamController<List<Todo>> _streamController = new StreamController();
+  final AsyncMemoizer _initMemoizer = AsyncMemoizer();
   GlobalKey<AnimatedListState> _listKey;
   ListModel<Todo> _list;
 
@@ -25,12 +30,37 @@ class TodoListState extends State<TodoList> {
     _fetchData();
   }
 
+  void _permissionCheck(BuildContext context) async {
+    var status = await Permission.calendar.status;
+    if (status.isPermanentlyDenied && Platform.isAndroid && mounted) {
+      // 已被禁止询问
+      var action = SnackBarAction(label: "打开", onPressed: openAppSettings);
+      Scaffold.of(context).showSnackBar(SnackBar(
+        content: Text("需要授予读取系统日历的权限"),
+        action: action,
+      ));
+    }
+    Log.debug(
+        "当前日历权限\nisUndetermined: ${status.isUndetermined}\nisGranted: ${status.isGranted}\nisDenied: ${status.isDenied}\nisRestricted: ${status.isRestricted}\nisPermanentlyDenied: ${status.isPermanentlyDenied}");
+    if (!status.isGranted) {
+      var requestStatus = await Permission.calendar.request();
+      if (!requestStatus.isGranted) {
+        Scaffold.of(context).showSnackBar(SnackBar(
+          content: Text("当前无权限读取系统日历"),
+        ));
+      }
+      Log.debug(
+          "请求后日历权限\nisUndetermined: ${requestStatus.isUndetermined}\nisGranted: ${requestStatus.isGranted}\nisDenied: ${requestStatus.isDenied}\nisRestricted: ${requestStatus.isRestricted}\nisPermanentlyDenied: ${requestStatus.isPermanentlyDenied}");
+    }
+  }
+
   void _fetchData() {
     _dataSource.queryAllTodo().then((data) => _streamController.sink.add(data));
   }
 
   @override
   Widget build(BuildContext context) {
+    _initMemoizer.runOnce(() => _permissionCheck(context));
     return Scaffold(
       appBar: AppBar(
         title: Text("待办事项"),
@@ -72,7 +102,7 @@ class TodoListState extends State<TodoList> {
             ),
             onRefresh: () async {
               await Future.delayed(const Duration(milliseconds: 500));
-              await _fetchData();
+              _fetchData();
               return;
             },
           );

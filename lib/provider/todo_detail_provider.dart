@@ -2,9 +2,9 @@ import 'package:f_todo/model/model.dart';
 import 'package:f_todo/todo.dart';
 import 'package:flutter/widgets.dart';
 
-class TodoProvider with ChangeNotifier {
+class TodoDetailProvider with ChangeNotifier {
   final Todo item;
-  TodoProvider({@required this.item});
+  TodoDetailProvider({@required this.item});
 
   void modifyState({complete = true}) {
     item.completed = complete;

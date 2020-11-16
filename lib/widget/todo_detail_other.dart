@@ -1,5 +1,5 @@
 import 'package:f_todo/model/model.dart';
-import 'package:f_todo/provider/TodoProvider.dart';
+import 'package:f_todo/provider/todo_detail_provider.dart';
 import 'package:f_todo/todo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -217,7 +217,7 @@ class TodoDetailCompletedTime extends StatelessWidget {
           const Padding(padding: const EdgeInsets.only(left: 16)),
           Icon(item.completed ? Icons.done : Icons.av_timer),
           const Padding(padding: const EdgeInsets.only(left: 24)),
-          Consumer<TodoProvider>(
+          Consumer<TodoDetailProvider>(
             builder: (context, provider, child) {
               Todo item = provider.item;
               return Text(
