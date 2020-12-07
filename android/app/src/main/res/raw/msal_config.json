@@ -1,0 +1,15 @@
+{
+  "client_id" : "181ad653-2fdd-41e3-9463-3e3fd8569ada",
+  "redirect_uri" : "msauth://com.kanade.ftodo/callback",
+  "broker_redirect_uri_registered": false,
+  "account_mode": "SINGLE",
+  "authorities" : [
+    {
+      "type": "AAD",
+      "audience": {
+        "type": "AzureADandPersonalMicrosoftAccount"
+      },
+      "default": true
+    }
+  ]
+}
