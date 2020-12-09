@@ -2,6 +2,7 @@ package com.kanade.f_todo.provider
 
 import android.app.Activity
 import android.util.Log
+import com.kanade.f_todo.entity.MscCalendar
 import com.kanade.f_todo.utils.AuthenticationHelper
 import com.kanade.f_todo.utils.IAuthenticationHelperCreatedListener
 import com.microsoft.identity.client.AuthenticationCallback
@@ -54,7 +55,7 @@ class MscCalendarProvider : CalendarProvider {
         attemptInteractiveSignIn = false
     }
 
-    override fun getCalendar() {
+    override fun getCalendar(): List<MscCalendar> {
         TODO("Not yet implemented")
     }
 

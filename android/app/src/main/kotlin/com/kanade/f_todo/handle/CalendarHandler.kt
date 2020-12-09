@@ -1,5 +1,6 @@
 package com.kanade.f_todo.handle
 
+import com.kanade.f_todo.entity.MscCalendar
 import com.kanade.f_todo.provider.CalendarProvider
 import com.kanade.f_todo.provider.MscCalendarProvider
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
@@ -14,6 +15,9 @@ class CalendarHandler : MethodChannel.MethodCallHandler {
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
+            "test" -> {
+                result.success(arrayListOf(MscCalendar("hhh", "测试", "内容", System.currentTimeMillis(), System.currentTimeMillis())))
+            }
             "login" -> providers.forEach { it.login() }
             "logout" -> providers.forEach { it.logout() }
             "getCalendar" -> result.success(providers.map { it.getCalendar() }.toList())

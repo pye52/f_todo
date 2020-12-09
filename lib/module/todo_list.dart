@@ -2,8 +2,10 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:async/async.dart';
+import 'package:dio_log/dio_log.dart';
 import 'package:f_todo/model/list_model.dart';
 import 'package:f_todo/model/model.dart';
+import 'package:f_todo/module/login/msc_login.dart';
 import 'package:f_todo/repository/todo_repository.dart';
 import 'package:f_todo/todo.dart';
 import 'package:f_todo/widget/todo_add.dart';
@@ -66,6 +68,50 @@ class TodoListState extends State<TodoList> {
         title: Text("待办事项"),
       ),
       backgroundColor: Color(0xFF708090),
+      drawer: Drawer(
+        child: ListView(
+          children: [
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Colors.lightBlueAccent,
+              ),
+              child: Center(
+                child: SizedBox(
+                  width: 100,
+                  height: 100,
+                  child: CircleAvatar(
+                    child: Text("User"),
+                  ),
+                ),
+              ),
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.all(16),
+                primary: Colors.black,
+              ),
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => MscLoginPage()),
+                );
+              },
+              child: Row(
+                children: [
+                  Icon(Icons.mail),
+                  const Padding(padding: const EdgeInsets.only(left: 8)),
+                  Expanded(
+                    child: Text(
+                      "登录微软帐号",
+                      style: TextStyle(fontWeight: FontWeight.normal),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
       body: StreamBuilder<List<Todo>>(
         stream: _streamController.stream,
         builder: (context, snapshot) {

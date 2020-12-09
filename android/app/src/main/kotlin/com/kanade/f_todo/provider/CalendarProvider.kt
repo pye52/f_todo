@@ -1,10 +1,10 @@
 package com.kanade.f_todo.provider
 
-import com.kanade.f_todo.entity.Calendar
+import com.kanade.f_todo.entity.MscCalendar
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 
 interface CalendarProvider {
-    fun getCalendar(): List<Calendar>
+    fun getCalendar(): List<MscCalendar>
 
     fun login()
 
