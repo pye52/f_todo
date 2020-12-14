@@ -203,3 +203,228 @@ class TodoAddState extends State {
     }
   }
 }
+
+class UserAdd extends StatefulWidget {
+  UserAdd(this._user);
+  final dynamic _user;
+  @override
+  State<StatefulWidget> createState() => UserAddState(_user as User);
+}
+
+class UserAddState extends State {
+  UserAddState(this.user);
+  User user;
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController txtUserType = TextEditingController();
+  final TextEditingController txtLoginTime = TextEditingController();
+  final TextEditingController txtTimeForLoginTime = TextEditingController();
+  final TextEditingController txtExpiresIn = TextEditingController();
+  final TextEditingController txtExtExpiresIn = TextEditingController();
+  final TextEditingController txtToken = TextEditingController();
+
+  @override
+  void initState() {
+    txtUserType.text = user.userType == null ? '' : user.userType.toString();
+    txtLoginTime.text =
+        user.loginTime == null ? '' : UITools.convertDate(user.loginTime);
+    txtTimeForLoginTime.text =
+        user.loginTime == null ? '' : UITools.convertTime(user.loginTime);
+
+    txtExpiresIn.text = user.expiresIn == null ? '' : user.expiresIn.toString();
+    txtExtExpiresIn.text =
+        user.extExpiresIn == null ? '' : user.extExpiresIn.toString();
+    txtToken.text = user.token == null ? '' : user.token;
+
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: (user.id == null) ? Text('Add a new user') : Text('Edit user'),
+      ),
+      body: Container(
+        alignment: Alignment.topCenter,
+        width: double.infinity,
+        height: double.infinity,
+        child: SingleChildScrollView(
+          child: Padding(
+              padding: EdgeInsets.only(top: 10.0, left: 10.0, right: 10.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: <Widget>[
+                    buildRowUserType(),
+                    buildRowLoginTime(),
+                    buildRowExpiresIn(),
+                    buildRowExtExpiresIn(),
+                    buildRowToken(),
+                    FlatButton(
+                      child: saveButton(),
+                      onPressed: () {
+                        if (_formKey.currentState.validate()) {
+                          // If the form is valid, display a Snackbar.
+                          save();
+                          /* Scaffold.of(context).showSnackBar(SnackBar(
+                              duration: Duration(seconds: 2),
+                              content: Text('Processing Data')));
+                           */
+                        }
+                      },
+                    )
+                  ],
+                ),
+              )),
+        ),
+      ),
+    );
+  }
+
+  Widget buildRowUserType() {
+    return TextFormField(
+      validator: (value) {
+        if (value.isNotEmpty && int.tryParse(value) == null) {
+          return 'Please Enter valid number';
+        }
+
+        return null;
+      },
+      controller: txtUserType,
+      decoration: InputDecoration(labelText: 'UserType'),
+    );
+  }
+
+  Widget buildRowLoginTime() {
+    return Row(children: <Widget>[
+      Expanded(
+        flex: 1,
+        child: TextFormField(
+          onTap: () => DatePicker.showDatePicker(context,
+              showTitleActions: true,
+              theme: UITools.mainDatePickerTheme,
+              minTime: DateTime.parse('1900-01-01'),
+              onConfirm: (sqfSelectedDate) {
+            txtLoginTime.text = UITools.convertDate(sqfSelectedDate);
+            txtTimeForLoginTime.text = UITools.convertTime(sqfSelectedDate);
+            setState(() {
+              final d = DateTime.tryParse(txtLoginTime.text) ??
+                  user.loginTime ??
+                  DateTime.now();
+              user.loginTime = DateTime(sqfSelectedDate.year,
+                      sqfSelectedDate.month, sqfSelectedDate.day)
+                  .add(Duration(
+                      hours: d.hour, minutes: d.minute, seconds: d.second));
+            });
+          },
+              currentTime: DateTime.tryParse(txtLoginTime.text) ??
+                  user.loginTime ??
+                  DateTime.now(),
+              locale: UITools.mainDatePickerLocaleType),
+          controller: txtLoginTime,
+          decoration: InputDecoration(labelText: 'LoginTime'),
+        ),
+      ),
+      Expanded(
+          flex: 1,
+          child: TextFormField(
+            onTap: () => DatePicker.showTimePicker(context,
+                showTitleActions: true, theme: UITools.mainDatePickerTheme,
+                onConfirm: (sqfSelectedDate) {
+              txtTimeForLoginTime.text = UITools.convertTime(sqfSelectedDate);
+              setState(() {
+                final d = DateTime.tryParse(txtLoginTime.text) ??
+                    user.loginTime ??
+                    DateTime.now();
+                user.loginTime = DateTime(d.year, d.month, d.day).add(Duration(
+                    hours: sqfSelectedDate.hour,
+                    minutes: sqfSelectedDate.minute,
+                    seconds: sqfSelectedDate.second));
+                txtLoginTime.text = UITools.convertDate(user.loginTime);
+              });
+            },
+                currentTime: DateTime.tryParse(
+                        '${UITools.convertDate(DateTime.now())} ${txtTimeForLoginTime.text}') ??
+                    user.loginTime ??
+                    DateTime.now(),
+                locale: UITools.mainDatePickerLocaleType),
+            controller: txtTimeForLoginTime,
+            decoration: InputDecoration(labelText: ''),
+          ))
+    ]);
+  }
+
+  Widget buildRowExpiresIn() {
+    return TextFormField(
+      validator: (value) {
+        if (value.isNotEmpty && int.tryParse(value) == null) {
+          return 'Please Enter valid number';
+        }
+
+        return null;
+      },
+      controller: txtExpiresIn,
+      decoration: InputDecoration(labelText: 'ExpiresIn'),
+    );
+  }
+
+  Widget buildRowExtExpiresIn() {
+    return TextFormField(
+      validator: (value) {
+        if (value.isNotEmpty && int.tryParse(value) == null) {
+          return 'Please Enter valid number';
+        }
+
+        return null;
+      },
+      controller: txtExtExpiresIn,
+      decoration: InputDecoration(labelText: 'ExtExpiresIn'),
+    );
+  }
+
+  Widget buildRowToken() {
+    return TextFormField(
+      controller: txtToken,
+      decoration: InputDecoration(labelText: 'Token'),
+    );
+  }
+
+  Container saveButton() {
+    return Container(
+      padding: const EdgeInsets.all(7.0),
+      decoration: BoxDecoration(
+          color: Color.fromRGBO(95, 66, 119, 1.0),
+          border: Border.all(color: Colors.black),
+          borderRadius: BorderRadius.circular(5.0)),
+      child: Text(
+        'Save',
+        style: TextStyle(color: Colors.white, fontSize: 20),
+      ),
+    );
+  }
+
+  void save() async {
+    var _loginTime = DateTime.tryParse(txtLoginTime.text);
+    final _loginTimeTime = DateTime.tryParse(txtTimeForLoginTime.text);
+    if (_loginTime != null && _loginTimeTime != null) {
+      _loginTime = _loginTime.add(Duration(
+          hours: _loginTimeTime.hour,
+          minutes: _loginTimeTime.minute,
+          seconds: _loginTimeTime.second));
+    }
+
+    user
+      ..userType = int.tryParse(txtUserType.text)
+      ..loginTime = _loginTime
+      ..expiresIn = int.tryParse(txtExpiresIn.text)
+      ..extExpiresIn = int.tryParse(txtExtExpiresIn.text)
+      ..token = txtToken.text;
+    await user.save();
+    if (user.saveResult.success) {
+      Navigator.pop(context, true);
+    } else {
+      UITools(context).alertDialog(user.saveResult.toString(),
+          title: 'save User Failed!', callBack: () {});
+    }
+  }
+}

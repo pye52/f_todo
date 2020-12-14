@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:sqfentity/sqfentity.dart';
@@ -12,6 +13,7 @@ part 'model.g.dart';
 part 'model.g.view.dart';
 
 const TODO_TABLE_NAME = "todos";
+const USER_TABLE_NAME = "user";
 
 const tableTodo = SqfEntityTable(
     tableName: TODO_TABLE_NAME,
@@ -28,6 +30,22 @@ const tableTodo = SqfEntityTable(
       SqfEntityField("completedTime", DbType.integer),
     ]);
 
+enum UserType { Microsoft }
+
+const tableUser = SqfEntityTable(
+    tableName: USER_TABLE_NAME,
+    primaryKeyName: "id",
+    primaryKeyType: PrimaryKeyType.integer_auto_incremental,
+    useSoftDeleting: true,
+    fields: [
+      // 1 => 微软帐号
+      SqfEntityField("userType", DbType.integer),
+      SqfEntityField("loginTime", DbType.datetime),
+      SqfEntityField("expiresIn", DbType.integer),
+      SqfEntityField("extExpiresIn", DbType.integer),
+      SqfEntityField("token", DbType.text),
+    ]);
+
 const _DB_VERSION = 1;
 const _MODEL_NAME = "dbModel";
 const _DB_NAME = "todos.db";
@@ -35,7 +53,13 @@ const _DB_NAME = "todos.db";
 const dbModel = SqfEntityModel(
   modelName: _MODEL_NAME,
   databaseName: _DB_NAME,
-  databaseTables: [tableTodo],
-  formTables: [tableTodo],
+  databaseTables: [
+    tableTodo,
+    tableUser,
+  ],
+  formTables: [
+    tableTodo,
+    tableUser,
+  ],
   dbVersion: _DB_VERSION,
 );
