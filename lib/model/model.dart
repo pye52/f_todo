@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:sqfentity/sqfentity.dart';
 import 'package:sqfentity_gen/sqfentity_gen.dart';
@@ -30,7 +30,7 @@ const tableTodo = SqfEntityTable(
       SqfEntityField("completedTime", DbType.integer),
     ]);
 
-enum UserType { Microsoft }
+const USER_TYPE_MICROSOFT = 1;
 
 const tableUser = SqfEntityTable(
     tableName: USER_TABLE_NAME,

@@ -2,11 +2,11 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:async/async.dart';
-import 'package:dio_log/dio_log.dart';
 import 'package:f_todo/model/list_model.dart';
 import 'package:f_todo/model/model.dart';
 import 'package:f_todo/module/login/msc_login.dart';
 import 'package:f_todo/repository/todo_repository.dart';
+import 'package:f_todo/repository/user_repository.dart';
 import 'package:f_todo/todo.dart';
 import 'package:f_todo/widget/todo_add.dart';
 import 'package:f_todo/widget/todo_item.dart';
@@ -21,14 +21,17 @@ class TodoList extends StatefulWidget {
 
 class TodoListState extends State<TodoList> {
   final TodoDataSource _dataSource = TodoDataSource();
+  final UserDataSource _userSource = UserDataSource();
   final StreamController<List<Todo>> _streamController = new StreamController();
   final AsyncMemoizer _initMemoizer = AsyncMemoizer();
   GlobalKey<AnimatedListState> _listKey;
   ListModel<Todo> _list;
+  Future<User> _mscLoginFun;
 
   @override
   void initState() {
     super.initState();
+    _mscLoginFun = Future(_isMscLogin);
     _fetchData();
   }
 
@@ -85,29 +88,11 @@ class TodoListState extends State<TodoList> {
                 ),
               ),
             ),
-            TextButton(
-              style: TextButton.styleFrom(
-                padding: const EdgeInsets.all(16),
-                primary: Colors.black,
-              ),
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (context) => MscLoginPage()),
-                );
+            FutureBuilder<User>(
+              future: _mscLoginFun,
+              builder: (context, snapshot) {
+                return _buildMscLoginButton(context, snapshot.data);
               },
-              child: Row(
-                children: [
-                  Icon(Icons.mail),
-                  const Padding(padding: const EdgeInsets.only(left: 8)),
-                  Expanded(
-                    child: Text(
-                      "登录微软帐号",
-                      style: TextStyle(fontWeight: FontWeight.normal),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ],
-              ),
             ),
           ],
         ),
@@ -165,6 +150,50 @@ class TodoListState extends State<TodoList> {
           }
           _showBottomSheet(context);
         },
+      ),
+    );
+  }
+
+  Future<User> _isMscLogin() async {
+    var mscUser = await _userSource.queryMscUser();
+    if (mscUser == null) {
+      return null;
+    }
+    // 检查token是否超时
+    var currentTime = DateTime.now().millisecondsSinceEpoch;
+    if ((mscUser.loginTime.millisecondsSinceEpoch + mscUser.expiresIn) <
+        currentTime) {
+      return mscUser;
+    }
+    return null;
+  }
+
+  TextButton _buildMscLoginButton(BuildContext context, User user) {
+    bool isLogin = user != null;
+    return TextButton(
+      style: TextButton.styleFrom(
+        padding: const EdgeInsets.all(16),
+        primary: Colors.black,
+      ),
+      onPressed: isLogin
+          ? null
+          : () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => MscLoginPage()),
+              );
+            },
+      child: Row(
+        children: [
+          Icon(Icons.mail),
+          const Padding(padding: const EdgeInsets.only(left: 8)),
+          Expanded(
+            child: Text(
+              isLogin ? "已登录微软账号" : "登录微软帐号",
+              style: TextStyle(fontWeight: FontWeight.normal),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ],
       ),
     );
   }
