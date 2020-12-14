@@ -3,6 +3,7 @@ package com.kanade.f_todo.provider
 import android.app.Activity
 import android.util.Log
 import com.kanade.f_todo.entity.MscCalendar
+import com.kanade.f_todo.entity.User
 import com.kanade.f_todo.utils.AuthenticationHelper
 import com.kanade.f_todo.utils.IAuthenticationHelperCreatedListener
 import com.microsoft.identity.client.AuthenticationCallback
@@ -12,6 +13,8 @@ import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.client.exception.MsalServiceException
 import com.microsoft.identity.client.exception.MsalUiRequiredException
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
+import io.flutter.plugin.common.JSONUtil
+import io.flutter.plugin.common.MethodChannel
 
 class MscCalendarProvider : CalendarProvider {
     companion object {
@@ -30,7 +33,7 @@ class MscCalendarProvider : CalendarProvider {
             override fun onCreated(helper: AuthenticationHelper) {
                 authHelper = helper
                 if (!isSignedIn) {
-                    doSilentSignIn(false)
+                    doSilentSignIn()
                 }
             }
 
@@ -59,13 +62,15 @@ class MscCalendarProvider : CalendarProvider {
         TODO("Not yet implemented")
     }
 
-    override fun login() = doSilentSignIn(true)
+    override fun login(result: MethodChannel.Result) = doSilentSignIn(true, result)
+
+    override fun refreshToken() = doSilentSignIn()
 
     override fun logout() = signOut()
 
-    private fun doSilentSignIn(shouldAttemptInteractive: Boolean) {
+    private fun doSilentSignIn(shouldAttemptInteractive: Boolean = false, result: MethodChannel.Result? = null) {
         attemptInteractiveSignIn = shouldAttemptInteractive
-        authHelper?.acquireTokenSilently(getAuthCallback())
+        authHelper?.acquireTokenSilently(getAuthCallback(result))
     }
 
     private fun doInteractiveSignIn() {
@@ -73,10 +78,22 @@ class MscCalendarProvider : CalendarProvider {
             authHelper?.acquireTokenInteractively(it, getAuthCallback())
         }
     }
-
-    private fun getAuthCallback(): AuthenticationCallback = object : AuthenticationCallback {
-        override fun onSuccess(authenticationResult: IAuthenticationResult?) {
-            accessToken = authenticationResult?.accessToken ?: ""
+    
+    private fun getAuthCallback(result: MethodChannel.Result? = null): AuthenticationCallback = object : AuthenticationCallback {
+        override fun onSuccess(aResult: IAuthenticationResult?) {
+            if (aResult == null) {
+                Log.d(TAG, "login failed, user is null")
+                return
+            }
+            result?.run {
+                val user = User(
+                        account = aResult.account.id,
+                        loginTime = System.currentTimeMillis(),
+                        expiresIn = aResult.expiresOn.time,
+                        token = aResult.accessToken,
+                )
+                success(JSONUtil.wrap(user))
+            }
             Log.d(TAG, String.format("Access token: %s", accessToken))
         }
 
