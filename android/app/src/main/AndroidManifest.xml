@@ -55,7 +55,7 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
                     android:scheme="msauth"
-                    android:host="com.kanade.f_todo"
+                    android:host="com.kanade.ftodo"
                     android:path="/callback" />
             </intent-filter>
         </activity>

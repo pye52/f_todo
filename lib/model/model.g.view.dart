@@ -219,7 +219,6 @@ class UserAddState extends State {
   final TextEditingController txtLoginTime = TextEditingController();
   final TextEditingController txtTimeForLoginTime = TextEditingController();
   final TextEditingController txtExpiresIn = TextEditingController();
-  final TextEditingController txtExtExpiresIn = TextEditingController();
   final TextEditingController txtToken = TextEditingController();
 
   @override
@@ -231,8 +230,6 @@ class UserAddState extends State {
         user.loginTime == null ? '' : UITools.convertTime(user.loginTime);
 
     txtExpiresIn.text = user.expiresIn == null ? '' : user.expiresIn.toString();
-    txtExtExpiresIn.text =
-        user.extExpiresIn == null ? '' : user.extExpiresIn.toString();
     txtToken.text = user.token == null ? '' : user.token;
 
     super.initState();
@@ -258,7 +255,6 @@ class UserAddState extends State {
                     buildRowUserType(),
                     buildRowLoginTime(),
                     buildRowExpiresIn(),
-                    buildRowExtExpiresIn(),
                     buildRowToken(),
                     FlatButton(
                       child: saveButton(),
@@ -368,20 +364,6 @@ class UserAddState extends State {
     );
   }
 
-  Widget buildRowExtExpiresIn() {
-    return TextFormField(
-      validator: (value) {
-        if (value.isNotEmpty && int.tryParse(value) == null) {
-          return 'Please Enter valid number';
-        }
-
-        return null;
-      },
-      controller: txtExtExpiresIn,
-      decoration: InputDecoration(labelText: 'ExtExpiresIn'),
-    );
-  }
-
   Widget buildRowToken() {
     return TextFormField(
       controller: txtToken,
@@ -417,7 +399,6 @@ class UserAddState extends State {
       ..userType = int.tryParse(txtUserType.text)
       ..loginTime = _loginTime
       ..expiresIn = int.tryParse(txtExpiresIn.text)
-      ..extExpiresIn = int.tryParse(txtExtExpiresIn.text)
       ..token = txtToken.text;
     await user.save();
     if (user.saveResult.success) {

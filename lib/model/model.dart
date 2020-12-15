@@ -42,7 +42,6 @@ const tableUser = SqfEntityTable(
       SqfEntityField("userType", DbType.integer),
       SqfEntityField("loginTime", DbType.datetime),
       SqfEntityField("expiresIn", DbType.integer),
-      SqfEntityField("extExpiresIn", DbType.integer),
       SqfEntityField("token", DbType.text),
     ]);
 

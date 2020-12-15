@@ -65,7 +65,6 @@ class TableUser extends SqfEntityTableBase {
       SqfEntityFieldBase('loginTime', DbType.datetime,
           isNotNull: false, minValue: DateTime.parse('1900-01-01')),
       SqfEntityFieldBase('expiresIn', DbType.integer, isNotNull: false),
-      SqfEntityFieldBase('extExpiresIn', DbType.integer, isNotNull: false),
       SqfEntityFieldBase('token', DbType.text, isNotNull: false),
     ];
     super.init();
@@ -1405,17 +1404,16 @@ class User {
       this.userType,
       this.loginTime,
       this.expiresIn,
-      this.extExpiresIn,
       this.token,
       this.isDeleted}) {
     _setDefaultValues();
   }
-  User.withFields(this.userType, this.loginTime, this.expiresIn,
-      this.extExpiresIn, this.token, this.isDeleted) {
+  User.withFields(this.userType, this.loginTime, this.expiresIn, this.token,
+      this.isDeleted) {
     _setDefaultValues();
   }
   User.withId(this.id, this.userType, this.loginTime, this.expiresIn,
-      this.extExpiresIn, this.token, this.isDeleted) {
+      this.token, this.isDeleted) {
     _setDefaultValues();
   }
   User.fromMap(Map<String, dynamic> o, {bool setDefaultValues = true}) {
@@ -1435,9 +1433,6 @@ class User {
     if (o['expiresIn'] != null) {
       expiresIn = int.tryParse(o['expiresIn'].toString());
     }
-    if (o['extExpiresIn'] != null) {
-      extExpiresIn = int.tryParse(o['extExpiresIn'].toString());
-    }
     if (o['token'] != null) {
       token = o['token'] as String;
     }
@@ -1450,7 +1445,6 @@ class User {
   int userType;
   DateTime loginTime;
   int expiresIn;
-  int extExpiresIn;
   String token;
   bool isDeleted;
 
@@ -1485,10 +1479,6 @@ class User {
 
     if (expiresIn != null) {
       map['expiresIn'] = expiresIn;
-    }
-
-    if (extExpiresIn != null) {
-      map['extExpiresIn'] = extExpiresIn;
     }
 
     if (token != null) {
@@ -1526,10 +1516,6 @@ class User {
       map['expiresIn'] = expiresIn;
     }
 
-    if (extExpiresIn != null) {
-      map['extExpiresIn'] = extExpiresIn;
-    }
-
     if (token != null) {
       map['token'] = token;
     }
@@ -1556,7 +1542,6 @@ class User {
       userType,
       loginTime != null ? loginTime.millisecondsSinceEpoch : null,
       expiresIn,
-      extExpiresIn,
       token,
       isDeleted
     ];
@@ -1568,7 +1553,6 @@ class User {
       userType,
       loginTime != null ? loginTime.millisecondsSinceEpoch : null,
       expiresIn,
-      extExpiresIn,
       token,
       isDeleted
     ];
@@ -1680,7 +1664,7 @@ class User {
   ///
   /// Returns a <List<BoolResult>>
   static Future<List<dynamic>> saveAll(List<User> users) async {
-    // final results = _mnUser.saveAll('INSERT OR REPLACE INTO user (id,userType, loginTime, expiresIn, extExpiresIn, token,isDeleted)  VALUES (?,?,?,?,?,?,?)',users);
+    // final results = _mnUser.saveAll('INSERT OR REPLACE INTO user (id,userType, loginTime, expiresIn, token,isDeleted)  VALUES (?,?,?,?,?,?)',users);
     // return results; removed in sqfentity_gen 1.3.0+6
     await DbModel().batchStart();
     for (final obj in users) {
@@ -1703,13 +1687,12 @@ class User {
   Future<int> upsert() async {
     try {
       if (await _mnUser.rawInsert(
-              'INSERT OR REPLACE INTO user (id,userType, loginTime, expiresIn, extExpiresIn, token,isDeleted)  VALUES (?,?,?,?,?,?,?)',
+              'INSERT OR REPLACE INTO user (id,userType, loginTime, expiresIn, token,isDeleted)  VALUES (?,?,?,?,?,?)',
               [
                 id,
                 userType,
                 loginTime != null ? loginTime.millisecondsSinceEpoch : null,
                 expiresIn,
-                extExpiresIn,
                 token,
                 isDeleted
               ]) ==
@@ -1736,7 +1719,7 @@ class User {
   /// Returns a BoolCommitResult
   Future<BoolCommitResult> upsertAll(List<User> users) async {
     final results = await _mnUser.rawInsertAll(
-        'INSERT OR REPLACE INTO user (id,userType, loginTime, expiresIn, extExpiresIn, token,isDeleted)  VALUES (?,?,?,?,?,?,?)',
+        'INSERT OR REPLACE INTO user (id,userType, loginTime, expiresIn, token,isDeleted)  VALUES (?,?,?,?,?,?)',
         users);
     return results;
   }
@@ -2211,12 +2194,6 @@ class UserFilterBuilder extends SearchCriteria {
     return _expiresIn = setField(_expiresIn, 'expiresIn', DbType.integer);
   }
 
-  UserField _extExpiresIn;
-  UserField get extExpiresIn {
-    return _extExpiresIn =
-        setField(_extExpiresIn, 'extExpiresIn', DbType.integer);
-  }
-
   UserField _token;
   UserField get token {
     return _token = setField(_token, 'token', DbType.text);
@@ -2615,12 +2592,6 @@ class UserFields {
   static TableField get expiresIn {
     return _fExpiresIn = _fExpiresIn ??
         SqlSyntax.setField(_fExpiresIn, 'expiresIn', DbType.integer);
-  }
-
-  static TableField _fExtExpiresIn;
-  static TableField get extExpiresIn {
-    return _fExtExpiresIn = _fExtExpiresIn ??
-        SqlSyntax.setField(_fExtExpiresIn, 'extExpiresIn', DbType.integer);
   }
 
   static TableField _fToken;

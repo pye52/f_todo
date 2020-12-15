@@ -6,4 +6,9 @@ class UserDataSource {
       .userType
       .equals(USER_TYPE_MICROSOFT)
       .toSingle();
+
+  Future<int> saveMscUser(User user) {
+    user.userType = USER_TYPE_MICROSOFT;
+    return user.save();
+  }
 }

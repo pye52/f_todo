@@ -2,8 +2,8 @@ package com.kanade.f_todo.provider
 
 import android.app.Activity
 import android.util.Log
-import com.kanade.f_todo.entity.MscCalendar
-import com.kanade.f_todo.entity.User
+import com.google.gson.Gson
+import com.kanade.f_todo.entity.UserToken
 import com.kanade.f_todo.utils.AuthenticationHelper
 import com.kanade.f_todo.utils.IAuthenticationHelperCreatedListener
 import com.microsoft.identity.client.AuthenticationCallback
@@ -13,19 +13,17 @@ import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.client.exception.MsalServiceException
 import com.microsoft.identity.client.exception.MsalUiRequiredException
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
-import io.flutter.plugin.common.JSONUtil
 import io.flutter.plugin.common.MethodChannel
 
 class MscCalendarProvider : CalendarProvider {
     companion object {
-        private const val TAG = "Calendar"
+        private const val TAG = "MscCalendarProvider"
     }
 
     private var authHelper: AuthenticationHelper? = null
     private var activity: Activity? = null
     private var isSignedIn = false
     private var attemptInteractiveSignIn = false
-    private var accessToken = ""
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
         activity = binding.activity
@@ -35,6 +33,7 @@ class MscCalendarProvider : CalendarProvider {
                 if (!isSignedIn) {
                     doSilentSignIn()
                 }
+                Log.d(TAG, "authHelper init")
             }
 
             override fun onError(exception: MsalException) {
@@ -58,10 +57,6 @@ class MscCalendarProvider : CalendarProvider {
         attemptInteractiveSignIn = false
     }
 
-    override fun getCalendar(): List<MscCalendar> {
-        TODO("Not yet implemented")
-    }
-
     override fun login(result: MethodChannel.Result) = doSilentSignIn(true, result)
 
     override fun refreshToken() = doSilentSignIn()
@@ -71,6 +66,7 @@ class MscCalendarProvider : CalendarProvider {
     private fun doSilentSignIn(shouldAttemptInteractive: Boolean = false, result: MethodChannel.Result? = null) {
         attemptInteractiveSignIn = shouldAttemptInteractive
         authHelper?.acquireTokenSilently(getAuthCallback(result))
+        Log.d(TAG, "doSilentSignIn: $shouldAttemptInteractive")
     }
 
     private fun doInteractiveSignIn() {
@@ -86,21 +82,22 @@ class MscCalendarProvider : CalendarProvider {
                 return
             }
             result?.run {
-                val user = User(
+                val user = UserToken(
                         account = aResult.account.id,
                         loginTime = System.currentTimeMillis(),
                         expiresIn = aResult.expiresOn.time,
-                        token = aResult.accessToken,
+                        accessToken = aResult.accessToken,
                 )
-                success(JSONUtil.wrap(user))
+                val gson = Gson()
+                success(gson.toJson(user))
+                Log.d(TAG, String.format("login user: %s", user))
             }
-            Log.d(TAG, String.format("Access token: %s", accessToken))
         }
 
         override fun onError(exception: MsalException?) {
             when (exception) {
                 is MsalUiRequiredException -> {
-                    Log.d(TAG, "Interactive login required")
+                    Log.w(TAG, "Interactive login required")
                     if (attemptInteractiveSignIn) {
                         doInteractiveSignIn()
                     }
@@ -108,7 +105,7 @@ class MscCalendarProvider : CalendarProvider {
                 is MsalClientException -> {
                     if (exception.getErrorCode() === "no_current_account" ||
                             exception.getErrorCode() === "no_account_found") {
-                        Log.d("AUTH", "No current account, interactive login required")
+                        Log.w("AUTH", "No current account, interactive login required")
                         if (attemptInteractiveSignIn) {
                             doInteractiveSignIn()
                         }
@@ -121,11 +118,12 @@ class MscCalendarProvider : CalendarProvider {
                     // Exception when communicating with the auth server, likely config issue
                     Log.e(TAG, "Service error authenticating", exception)
                 }
+                else -> Log.e(TAG, "other error: $exception")
             }
         }
 
         override fun onCancel() {
-            Log.d(TAG, "Authentication canceled")
+            Log.e(TAG, "Authentication canceled")
         }
     }
 
