@@ -4,6 +4,7 @@ import 'package:f_todo/repository/user_repository.dart';
 import 'package:f_todo/todo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 
 class MscLoginButton extends StatefulWidget {
   @override
@@ -12,25 +13,26 @@ class MscLoginButton extends StatefulWidget {
 
 class _MscLoginButtonState extends State<MscLoginButton> {
   final UserDataSource _userSource = UserDataSource();
-  Future<User> _mscLoginFun;
+  bool _loginState = false;
+  Future<User> _loginFun;
 
   @override
   void initState() {
     super.initState();
-    _mscLoginFun = Future(_isMscLogin);
+    _loginFun = Future(_loginActual);
   }
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<User>(
-      future: _mscLoginFun,
+      future: _loginFun,
       builder: (context, snapshot) {
         return _buildMscLoginButton(context, snapshot.data);
       },
     );
   }
 
-  Future<User> _isMscLogin() async {
+  Future<User> _loginActual() async {
     var mscUser = await _userSource.queryMscUser();
     if (mscUser == null) {
       return null;
@@ -38,25 +40,32 @@ class _MscLoginButtonState extends State<MscLoginButton> {
     // 检查token是否超时
     var currentTime = DateTime.now().millisecondsSinceEpoch;
     if (mscUser.expiresIn > currentTime) {
+      _loginState = true;
       return mscUser;
     }
     return null;
   }
 
   TextButton _buildMscLoginButton(BuildContext context, User user) {
-    bool isLogin = user != null;
     return TextButton(
       style: TextButton.styleFrom(
         padding: const EdgeInsets.all(16),
         primary: Colors.black,
       ),
-      onPressed: isLogin
+      onPressed: _loginState
           ? null
           : () async {
+              EasyLoading.show(
+                status: '请稍候...',
+                maskType: EasyLoadingMaskType.black,
+              );
               var user = await CalendarPlugin.mscLogin();
               var saveResult = await _userSource.saveMscUser(user);
-              Log.debug("save result: $saveResult");
-              setState(() {});
+              Log.debug("save login result: $saveResult");
+              EasyLoading.dismiss();
+              setState(() {
+                _loginState = user != null;
+              });
             },
       child: Row(
         children: [
@@ -64,7 +73,7 @@ class _MscLoginButtonState extends State<MscLoginButton> {
           const Padding(padding: const EdgeInsets.only(left: 8)),
           Expanded(
             child: Text(
-              isLogin ? "已登录微软账号" : "登录微软帐号",
+              _loginState ? "已登录微软账号" : "登录微软帐号",
               style: TextStyle(fontWeight: FontWeight.normal),
               textAlign: TextAlign.center,
             ),

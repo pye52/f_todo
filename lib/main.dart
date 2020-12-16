@@ -1,6 +1,6 @@
-import 'package:dio_log/dio_log.dart';
 import 'package:f_todo/module/todo_list.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() {
@@ -26,6 +26,7 @@ class MyApp extends StatelessWidget {
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
       home: TodoList(),
+      builder: EasyLoading.init(),
     );
   }
 }

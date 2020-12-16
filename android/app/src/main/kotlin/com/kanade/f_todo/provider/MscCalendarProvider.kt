@@ -22,6 +22,7 @@ class MscCalendarProvider : CalendarProvider {
 
     private var authHelper: AuthenticationHelper? = null
     private var activity: Activity? = null
+    private var methodResult: MethodChannel.Result? = null
     private var isSignedIn = false
     private var attemptInteractiveSignIn = false
 
@@ -57,15 +58,23 @@ class MscCalendarProvider : CalendarProvider {
         attemptInteractiveSignIn = false
     }
 
-    override fun login(result: MethodChannel.Result) = doSilentSignIn(true, result)
+    override fun login(result: MethodChannel.Result) {
+        methodResult = result
+        doSilentSignIn(true)
+    }
 
-    override fun refreshToken() = doSilentSignIn()
+    override fun refreshToken() {
+        doSilentSignIn()
+    }
 
     override fun logout() = signOut()
 
-    private fun doSilentSignIn(shouldAttemptInteractive: Boolean = false, result: MethodChannel.Result? = null) {
+    private fun doSilentSignIn(shouldAttemptInteractive: Boolean = false) {
+        if (!shouldAttemptInteractive) {
+            methodResult = null
+        }
         attemptInteractiveSignIn = shouldAttemptInteractive
-        authHelper?.acquireTokenSilently(getAuthCallback(result))
+        authHelper?.acquireTokenSilently(getAuthCallback())
         Log.d(TAG, "doSilentSignIn: $shouldAttemptInteractive")
     }
 
@@ -75,13 +84,13 @@ class MscCalendarProvider : CalendarProvider {
         }
     }
     
-    private fun getAuthCallback(result: MethodChannel.Result? = null): AuthenticationCallback = object : AuthenticationCallback {
+    private fun getAuthCallback(): AuthenticationCallback = object : AuthenticationCallback {
         override fun onSuccess(aResult: IAuthenticationResult?) {
             if (aResult == null) {
                 Log.d(TAG, "login failed, user is null")
                 return
             }
-            result?.run {
+            methodResult?.run {
                 val user = UserToken(
                         account = aResult.account.id,
                         loginTime = System.currentTimeMillis(),
@@ -92,6 +101,7 @@ class MscCalendarProvider : CalendarProvider {
                 success(gson.toJson(user))
                 Log.d(TAG, String.format("login user: %s", user))
             }
+            methodResult = null
         }
 
         override fun onError(exception: MsalException?) {
