@@ -14,11 +14,12 @@ class CalendarHandler : MethodChannel.MethodCallHandler {
     private val providers = arrayListOf<CalendarProvider>(MscCalendarProvider())
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
-        Log.d(TAG, "onMethodCall: ${call.method}")
+        Log.d(TAG, "onMethodCall: ${call.method}, result: $result")
         when (call.method) {
+            "init" -> providers.forEach { it.init() }
             "login" -> providers.forEach { it.login(result) }
-            "refreshToken" -> providers.forEach { it.refreshToken() }
-            "logout" -> providers.forEach { it.logout() }
+            "refreshToken" -> providers.forEach { it.refreshToken(result) }
+            "logout" -> providers.forEach { it.logout(result) }
         }
     }
 

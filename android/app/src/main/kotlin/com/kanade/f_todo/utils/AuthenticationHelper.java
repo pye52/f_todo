@@ -8,8 +8,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.util.Log;
 
-import androidx.annotation.NonNull;
-
 import com.kanade.f_todo.R;
 import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.IPublicClientApplication;
@@ -47,8 +45,6 @@ public class AuthenticationHelper {
         }
     }
 
-    // Version called from fragments. Does not create an
-    // instance if one doesn't exist
     public static synchronized AuthenticationHelper getInstance() {
         if (INSTANCE == null) {
             throw new IllegalStateException("AuthenticationHelper has not been initialized from MainActivity");
@@ -61,22 +57,11 @@ public class AuthenticationHelper {
     }
 
     public void acquireTokenSilently(AuthenticationCallback callback) {
-        // Get the authority from MSAL config
         String authority = mPCA.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
         mPCA.acquireTokenSilentAsync(mScopes, authority, callback);
     }
 
-    public void signOut() {
-        mPCA.signOut(new ISingleAccountPublicClientApplication.SignOutCallback() {
-            @Override
-            public void onSignOut() {
-                Log.d("AUTHHELPER", "Signed out");
-            }
-
-            @Override
-            public void onError(@NonNull MsalException exception) {
-                Log.d("AUTHHELPER", "MSAL error signing out", exception);
-            }
-        });
+    public void signOut(ISingleAccountPublicClientApplication.SignOutCallback signOutCallback) {
+        mPCA.signOut(signOutCallback);
     }
 }

@@ -4,14 +4,14 @@ import 'dart:io';
 import 'package:async/async.dart';
 import 'package:f_todo/model/list_model.dart';
 import 'package:f_todo/model/model.dart';
+import 'package:f_todo/plugin/calendar_plugin.dart';
 import 'package:f_todo/repository/todo_repository.dart';
 import 'package:f_todo/todo.dart';
+import 'package:f_todo/widget/msc_login_layout.dart';
 import 'package:f_todo/widget/todo_add.dart';
 import 'package:f_todo/widget/todo_item.dart';
-import 'package:f_todo/widget/todo_msc_login.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class TodoList extends StatefulWidget {
@@ -62,7 +62,10 @@ class TodoListState extends State<TodoList> {
 
   @override
   Widget build(BuildContext context) {
-    _initMemoizer.runOnce(() => _permissionCheck(context));
+    _initMemoizer.runOnce(() {
+      CalendarPlugin.mscInit();
+      _permissionCheck(context);
+    });
     return Scaffold(
       appBar: AppBar(
         title: Text("待办事项"),
@@ -85,7 +88,7 @@ class TodoListState extends State<TodoList> {
                 ),
               ),
             ),
-            MscLoginButton(),
+            MscLoginLayout(),
           ],
         ),
       ),

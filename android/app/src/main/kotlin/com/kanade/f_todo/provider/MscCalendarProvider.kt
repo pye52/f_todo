@@ -8,6 +8,7 @@ import com.kanade.f_todo.utils.AuthenticationHelper
 import com.kanade.f_todo.utils.IAuthenticationHelperCreatedListener
 import com.microsoft.identity.client.AuthenticationCallback
 import com.microsoft.identity.client.IAuthenticationResult
+import com.microsoft.identity.client.ISingleAccountPublicClientApplication
 import com.microsoft.identity.client.exception.MsalClientException
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.client.exception.MsalServiceException
@@ -32,6 +33,7 @@ class MscCalendarProvider : CalendarProvider {
             override fun onCreated(helper: AuthenticationHelper) {
                 authHelper = helper
                 if (!isSignedIn) {
+                    methodResult = null
                     doSilentSignIn()
                 }
                 Log.d(TAG, "authHelper init")
@@ -58,21 +60,24 @@ class MscCalendarProvider : CalendarProvider {
         attemptInteractiveSignIn = false
     }
 
+    override fun init() = Unit
+
     override fun login(result: MethodChannel.Result) {
         methodResult = result
         doSilentSignIn(true)
     }
 
-    override fun refreshToken() {
+    override fun refreshToken(result: MethodChannel.Result) {
+        methodResult = result
         doSilentSignIn()
     }
 
-    override fun logout() = signOut()
+    override fun logout(result: MethodChannel.Result) {
+        methodResult = result
+        signOut()
+    }
 
     private fun doSilentSignIn(shouldAttemptInteractive: Boolean = false) {
-        if (!shouldAttemptInteractive) {
-            methodResult = null
-        }
         attemptInteractiveSignIn = shouldAttemptInteractive
         authHelper?.acquireTokenSilently(getAuthCallback())
         Log.d(TAG, "doSilentSignIn: $shouldAttemptInteractive")
@@ -86,8 +91,9 @@ class MscCalendarProvider : CalendarProvider {
     
     private fun getAuthCallback(): AuthenticationCallback = object : AuthenticationCallback {
         override fun onSuccess(aResult: IAuthenticationResult?) {
+            Log.d(TAG, "onSuccess, methodResult: $methodResult")
             if (aResult == null) {
-                Log.d(TAG, "login failed, user is null")
+                Log.d(TAG, "login or refresh failed, user is null")
                 return
             }
             methodResult?.run {
@@ -99,7 +105,7 @@ class MscCalendarProvider : CalendarProvider {
                 )
                 val gson = Gson()
                 success(gson.toJson(user))
-                Log.d(TAG, String.format("login user: %s", user))
+                Log.d(TAG, String.format("user: %s", user))
             }
             methodResult = null
         }
@@ -111,14 +117,18 @@ class MscCalendarProvider : CalendarProvider {
                     if (attemptInteractiveSignIn) {
                         doInteractiveSignIn()
                     }
+                    return
                 }
                 is MsalClientException -> {
                     if (exception.getErrorCode() === "no_current_account" ||
                             exception.getErrorCode() === "no_account_found") {
-                        Log.w("AUTH", "No current account, interactive login required")
+                        Log.w(TAG, "No current account, interactive login required")
                         if (attemptInteractiveSignIn) {
                             doInteractiveSignIn()
                         }
+                        // 由于首次login时仍然会抛出该异常(先抛异常再跳转到登录activity)
+                        // 此时阻断后续置空methodResult的执行，否则会导致登录成功后无法回调flutter端
+                        return
                     } else {
                         // Exception inside MSAL, more info inside MsalError.java
                         Log.e(TAG, "Client error authenticating", exception)
@@ -130,15 +140,29 @@ class MscCalendarProvider : CalendarProvider {
                 }
                 else -> Log.e(TAG, "other error: $exception")
             }
+            methodResult?.error(exception?.errorCode, exception?.message, null)
+            methodResult = null
         }
 
         override fun onCancel() {
             Log.e(TAG, "Authentication canceled")
+            methodResult = null
         }
     }
 
     private fun signOut() {
-        authHelper?.signOut()
+        authHelper?.signOut(object : ISingleAccountPublicClientApplication.SignOutCallback {
+            override fun onSignOut() {
+                Log.d(TAG, "sign out success")
+                methodResult?.success(true)
+            }
+
+            override fun onError(exception: MsalException) {
+                Log.d(TAG, "sign out error: ${exception.errorCode}, message: ${exception.message}")
+                methodResult?.error(exception.errorCode, exception.message, null)
+                methodResult = null
+            }
+        })
         isSignedIn = false
     }
 }

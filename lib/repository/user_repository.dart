@@ -11,4 +11,10 @@ class UserDataSource {
     user.userType = USER_TYPE_MICROSOFT;
     return user.save();
   }
+
+  Future<int> refreshMscUser(User refresh, User old) {
+    refresh.id = old.id;
+    refresh.userType = USER_TYPE_MICROSOFT;
+    return refresh.save();
+  }
 }
