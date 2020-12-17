@@ -1,4 +1,5 @@
 import 'package:f_todo/model/model.dart';
+import 'package:f_todo/module/login/msc_login.dart';
 import 'package:f_todo/plugin/calendar_plugin.dart';
 import 'package:f_todo/repository/user_repository.dart';
 import 'package:f_todo/todo.dart';
@@ -61,11 +62,13 @@ class _MscLoginLayoutState extends State<MscLoginLayout> {
       onPressed: _login
           ? null
           : () async {
+              var user = await Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => MscLoginPage()),
+              );
               EasyLoading.show(
                 status: '请稍候...',
                 maskType: EasyLoadingMaskType.black,
               );
-              var user = await CalendarPlugin.mscLogin();
               var saveResult = await _userSource.saveMscUser(user);
               Log.debug("save login result: $saveResult");
               EasyLoading.dismiss();

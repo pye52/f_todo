@@ -18,7 +18,7 @@ class CalendarPlugin {
       var userToken = MscToken.fromJson(jsonMap);
       var mscUser = User(
         expiresIn: userToken.expiresIn,
-        token: userToken.accessToken,
+        accessToken: userToken.accessToken,
         loginTime: DateTime.now(),
       );
       Log.debug("msc login result: $result");
@@ -36,7 +36,7 @@ class CalendarPlugin {
       var userToken = MscToken.fromJson(jsonMap);
       var mscUser = User(
         expiresIn: userToken.expiresIn,
-        token: userToken.accessToken,
+        accessToken: userToken.accessToken,
         loginTime: DateTime.now(),
       );
       Log.debug("msc refresh result: $result");

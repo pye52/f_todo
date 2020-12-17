@@ -42,7 +42,8 @@ const tableUser = SqfEntityTable(
       SqfEntityField("userType", DbType.integer),
       SqfEntityField("loginTime", DbType.datetime),
       SqfEntityField("expiresIn", DbType.integer),
-      SqfEntityField("token", DbType.text),
+      SqfEntityField("accessToken", DbType.text),
+      SqfEntityField("refreshToken", DbType.text),
     ]);
 
 const _DB_VERSION = 1;

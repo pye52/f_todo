@@ -219,7 +219,8 @@ class UserAddState extends State {
   final TextEditingController txtLoginTime = TextEditingController();
   final TextEditingController txtTimeForLoginTime = TextEditingController();
   final TextEditingController txtExpiresIn = TextEditingController();
-  final TextEditingController txtToken = TextEditingController();
+  final TextEditingController txtAccessToken = TextEditingController();
+  final TextEditingController txtRefreshToken = TextEditingController();
 
   @override
   void initState() {
@@ -230,7 +231,8 @@ class UserAddState extends State {
         user.loginTime == null ? '' : UITools.convertTime(user.loginTime);
 
     txtExpiresIn.text = user.expiresIn == null ? '' : user.expiresIn.toString();
-    txtToken.text = user.token == null ? '' : user.token;
+    txtAccessToken.text = user.accessToken == null ? '' : user.accessToken;
+    txtRefreshToken.text = user.refreshToken == null ? '' : user.refreshToken;
 
     super.initState();
   }
@@ -255,7 +257,8 @@ class UserAddState extends State {
                     buildRowUserType(),
                     buildRowLoginTime(),
                     buildRowExpiresIn(),
-                    buildRowToken(),
+                    buildRowAccessToken(),
+                    buildRowRefreshToken(),
                     FlatButton(
                       child: saveButton(),
                       onPressed: () {
@@ -364,10 +367,17 @@ class UserAddState extends State {
     );
   }
 
-  Widget buildRowToken() {
+  Widget buildRowAccessToken() {
     return TextFormField(
-      controller: txtToken,
-      decoration: InputDecoration(labelText: 'Token'),
+      controller: txtAccessToken,
+      decoration: InputDecoration(labelText: 'AccessToken'),
+    );
+  }
+
+  Widget buildRowRefreshToken() {
+    return TextFormField(
+      controller: txtRefreshToken,
+      decoration: InputDecoration(labelText: 'RefreshToken'),
     );
   }
 
@@ -399,7 +409,8 @@ class UserAddState extends State {
       ..userType = int.tryParse(txtUserType.text)
       ..loginTime = _loginTime
       ..expiresIn = int.tryParse(txtExpiresIn.text)
-      ..token = txtToken.text;
+      ..accessToken = txtAccessToken.text
+      ..refreshToken = txtRefreshToken.text;
     await user.save();
     if (user.saveResult.success) {
       Navigator.pop(context, true);

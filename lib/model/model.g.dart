@@ -65,7 +65,8 @@ class TableUser extends SqfEntityTableBase {
       SqfEntityFieldBase('loginTime', DbType.datetime,
           isNotNull: false, minValue: DateTime.parse('1900-01-01')),
       SqfEntityFieldBase('expiresIn', DbType.integer, isNotNull: false),
-      SqfEntityFieldBase('token', DbType.text, isNotNull: false),
+      SqfEntityFieldBase('accessToken', DbType.text, isNotNull: false),
+      SqfEntityFieldBase('refreshToken', DbType.text, isNotNull: false),
     ];
     super.init();
   }
@@ -1404,16 +1405,17 @@ class User {
       this.userType,
       this.loginTime,
       this.expiresIn,
-      this.token,
+      this.accessToken,
+      this.refreshToken,
       this.isDeleted}) {
     _setDefaultValues();
   }
-  User.withFields(this.userType, this.loginTime, this.expiresIn, this.token,
-      this.isDeleted) {
+  User.withFields(this.userType, this.loginTime, this.expiresIn,
+      this.accessToken, this.refreshToken, this.isDeleted) {
     _setDefaultValues();
   }
   User.withId(this.id, this.userType, this.loginTime, this.expiresIn,
-      this.token, this.isDeleted) {
+      this.accessToken, this.refreshToken, this.isDeleted) {
     _setDefaultValues();
   }
   User.fromMap(Map<String, dynamic> o, {bool setDefaultValues = true}) {
@@ -1433,8 +1435,11 @@ class User {
     if (o['expiresIn'] != null) {
       expiresIn = int.tryParse(o['expiresIn'].toString());
     }
-    if (o['token'] != null) {
-      token = o['token'] as String;
+    if (o['accessToken'] != null) {
+      accessToken = o['accessToken'] as String;
+    }
+    if (o['refreshToken'] != null) {
+      refreshToken = o['refreshToken'] as String;
     }
     isDeleted = o['isDeleted'] != null
         ? o['isDeleted'] == 1 || o['isDeleted'] == true
@@ -1445,7 +1450,8 @@ class User {
   int userType;
   DateTime loginTime;
   int expiresIn;
-  String token;
+  String accessToken;
+  String refreshToken;
   bool isDeleted;
 
   BoolResult saveResult;
@@ -1481,8 +1487,12 @@ class User {
       map['expiresIn'] = expiresIn;
     }
 
-    if (token != null) {
-      map['token'] = token;
+    if (accessToken != null) {
+      map['accessToken'] = accessToken;
+    }
+
+    if (refreshToken != null) {
+      map['refreshToken'] = refreshToken;
     }
 
     if (isDeleted != null) {
@@ -1516,8 +1526,12 @@ class User {
       map['expiresIn'] = expiresIn;
     }
 
-    if (token != null) {
-      map['token'] = token;
+    if (accessToken != null) {
+      map['accessToken'] = accessToken;
+    }
+
+    if (refreshToken != null) {
+      map['refreshToken'] = refreshToken;
     }
 
     if (isDeleted != null) {
@@ -1542,7 +1556,8 @@ class User {
       userType,
       loginTime != null ? loginTime.millisecondsSinceEpoch : null,
       expiresIn,
-      token,
+      accessToken,
+      refreshToken,
       isDeleted
     ];
   }
@@ -1553,7 +1568,8 @@ class User {
       userType,
       loginTime != null ? loginTime.millisecondsSinceEpoch : null,
       expiresIn,
-      token,
+      accessToken,
+      refreshToken,
       isDeleted
     ];
   }
@@ -1664,7 +1680,7 @@ class User {
   ///
   /// Returns a <List<BoolResult>>
   static Future<List<dynamic>> saveAll(List<User> users) async {
-    // final results = _mnUser.saveAll('INSERT OR REPLACE INTO user (id,userType, loginTime, expiresIn, token,isDeleted)  VALUES (?,?,?,?,?,?)',users);
+    // final results = _mnUser.saveAll('INSERT OR REPLACE INTO user (id,userType, loginTime, expiresIn, accessToken, refreshToken,isDeleted)  VALUES (?,?,?,?,?,?,?)',users);
     // return results; removed in sqfentity_gen 1.3.0+6
     await DbModel().batchStart();
     for (final obj in users) {
@@ -1687,13 +1703,14 @@ class User {
   Future<int> upsert() async {
     try {
       if (await _mnUser.rawInsert(
-              'INSERT OR REPLACE INTO user (id,userType, loginTime, expiresIn, token,isDeleted)  VALUES (?,?,?,?,?,?)',
+              'INSERT OR REPLACE INTO user (id,userType, loginTime, expiresIn, accessToken, refreshToken,isDeleted)  VALUES (?,?,?,?,?,?,?)',
               [
                 id,
                 userType,
                 loginTime != null ? loginTime.millisecondsSinceEpoch : null,
                 expiresIn,
-                token,
+                accessToken,
+                refreshToken,
                 isDeleted
               ]) ==
           1) {
@@ -1719,7 +1736,7 @@ class User {
   /// Returns a BoolCommitResult
   Future<BoolCommitResult> upsertAll(List<User> users) async {
     final results = await _mnUser.rawInsertAll(
-        'INSERT OR REPLACE INTO user (id,userType, loginTime, expiresIn, token,isDeleted)  VALUES (?,?,?,?,?,?)',
+        'INSERT OR REPLACE INTO user (id,userType, loginTime, expiresIn, accessToken, refreshToken,isDeleted)  VALUES (?,?,?,?,?,?,?)',
         users);
     return results;
   }
@@ -2194,9 +2211,14 @@ class UserFilterBuilder extends SearchCriteria {
     return _expiresIn = setField(_expiresIn, 'expiresIn', DbType.integer);
   }
 
-  UserField _token;
-  UserField get token {
-    return _token = setField(_token, 'token', DbType.text);
+  UserField _accessToken;
+  UserField get accessToken {
+    return _accessToken = setField(_accessToken, 'accessToken', DbType.text);
+  }
+
+  UserField _refreshToken;
+  UserField get refreshToken {
+    return _refreshToken = setField(_refreshToken, 'refreshToken', DbType.text);
   }
 
   UserField _isDeleted;
@@ -2594,10 +2616,16 @@ class UserFields {
         SqlSyntax.setField(_fExpiresIn, 'expiresIn', DbType.integer);
   }
 
-  static TableField _fToken;
-  static TableField get token {
-    return _fToken =
-        _fToken ?? SqlSyntax.setField(_fToken, 'token', DbType.text);
+  static TableField _fAccessToken;
+  static TableField get accessToken {
+    return _fAccessToken = _fAccessToken ??
+        SqlSyntax.setField(_fAccessToken, 'accessToken', DbType.text);
+  }
+
+  static TableField _fRefreshToken;
+  static TableField get refreshToken {
+    return _fRefreshToken = _fRefreshToken ??
+        SqlSyntax.setField(_fRefreshToken, 'refreshToken', DbType.text);
   }
 
   static TableField _fIsDeleted;
@@ -2654,8 +2682,8 @@ class TodoController extends Todo {
 // BEGIN CONTROLLER (User)
 
 class UserController extends User {
-  String formListTitleField = 'token';
-  String formListSubTitleField = 'userType';
+  String formListTitleField = 'accessToken';
+  String formListSubTitleField = 'refreshToken';
   static SQFViewList getController = SQFViewList(
     UserController(),
     primaryKeyName: 'id',
