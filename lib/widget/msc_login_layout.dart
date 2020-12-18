@@ -1,11 +1,12 @@
+import 'package:f_todo/api/microsoft_dio.dart';
 import 'package:f_todo/model/model.dart';
 import 'package:f_todo/module/login/msc_login.dart';
-import 'package:f_todo/plugin/calendar_plugin.dart';
 import 'package:f_todo/repository/user_repository.dart';
 import 'package:f_todo/todo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:flutter_styled_toast/flutter_styled_toast.dart';
 
 class MscLoginLayout extends StatefulWidget {
   @override
@@ -39,12 +40,14 @@ class _MscLoginLayoutState extends State<MscLoginLayout> {
       return null;
     }
     // 检查token是否超时
-    var currentTime = DateTime.now().millisecondsSinceEpoch;
-    if (mscUser.expiresIn > currentTime) {
+    var currentTime = DateTime.now();
+    if (mscUser.expiresIn > currentTime.millisecondsSinceEpoch) {
       _login = true;
       return mscUser;
     }
-    var refreshUser = await CalendarPlugin.mscRefreshToken();
+    var response = await MicrosoftService.refreshToken(mscUser.refreshToken);
+    var refreshUser = response.data?.convertToUser();
+    Log.debug("refresh token: ${refreshUser?.toString()}");
     if (refreshUser != null) {
       _userSource.refreshMscUser(refreshUser, mscUser);
       _login = true;
@@ -69,9 +72,23 @@ class _MscLoginLayoutState extends State<MscLoginLayout> {
                 status: '请稍候...',
                 maskType: EasyLoadingMaskType.black,
               );
+              if (user == null) {
+                showToast(
+                  "登录异常",
+                  position: StyledToastPosition.center,
+                  animation: StyledToastAnimation.scale,
+                );
+                EasyLoading.dismiss();
+                return;
+              }
               var saveResult = await _userSource.saveMscUser(user);
               Log.debug("save login result: $saveResult");
               EasyLoading.dismiss();
+              showToast(
+                "登录成功",
+                position: StyledToastPosition.center,
+                animation: StyledToastAnimation.scale,
+              );
               setState(() {
                 _login = user != null;
               });
@@ -94,11 +111,20 @@ class _MscLoginLayoutState extends State<MscLoginLayout> {
                     ),
                     TextButton(
                       onPressed: () async {
-                        var signOut = await CalendarPlugin.mscSignOut();
-                        if (signOut) {
-                          setState(() {
-                            _login = false;
-                          });
+                        try {
+                          var signOut = await MicrosoftService.signOut(user);
+                          if (signOut.success) {
+                            showToast(
+                              "已登出",
+                              position: StyledToastPosition.center,
+                              animation: StyledToastAnimation.scale,
+                            );
+                            setState(() {
+                              _login = false;
+                            });
+                          }
+                        } catch (e) {
+                          Log.error("登出异常: ${e?.toString()}");
                         }
                       },
                       child: Text("注销"),

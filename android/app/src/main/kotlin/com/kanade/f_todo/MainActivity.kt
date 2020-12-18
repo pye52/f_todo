@@ -8,6 +8,6 @@ import io.flutter.plugins.GeneratedPluginRegistrant
 class MainActivity: FlutterFragmentActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         GeneratedPluginRegistrant.registerWith(flutterEngine)
-        flutterEngine.plugins.add(CalendarPlugin())
+//        flutterEngine.plugins.add(CalendarPlugin())
     }
 }

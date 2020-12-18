@@ -1,10 +1,7 @@
 import 'dart:async';
 
-import 'package:dio/dio.dart';
 import 'package:dio_log/overlay_draggable_button.dart';
 import 'package:f_todo/api/microsoft_dio.dart';
-import 'package:f_todo/model/model.dart';
-import 'package:f_todo/model/user_token.dart';
 import 'package:f_todo/todo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -15,20 +12,6 @@ class MscLoginPage extends StatefulWidget {
   @override
   State createState() => MscLoginPageState();
 }
-
-const String _grant = "common";
-const String _clientId = "181ad653-2fdd-41e3-9463-3e3fd8569ada";
-const String _mscRedirectUri = "https://www.kanade.ftodo.com";
-const String _mscScope = "offline_access Calendars.ReadWrite";
-const String _mscLoginUrl =
-    '''https://login.microsoftonline.com/$_grant/oauth2/v2.0/authorize?
- client_id=$_clientId
- &response_type=code
- &redirect_uri=$_mscRedirectUri
- &response_mode=query
- &scope=$_mscScope''';
-const String _mscTokenUrl =
-    "https://login.microsoftonline.com/$_grant/oauth2/v2.0/token";
 
 class MscLoginPageState extends State<MscLoginPage> {
   WebViewController _controller;
@@ -44,10 +27,10 @@ class MscLoginPageState extends State<MscLoginPage> {
         onWebViewCreated: (controller) {
           _controller = controller;
         },
-        initialUrl: "$_mscLoginUrl",
+        initialUrl: "$mscLoginUrl",
         javascriptMode: JavascriptMode.unrestricted,
         onPageStarted: (url) {
-          if (!url.startsWith(_mscRedirectUri)) {
+          if (!url.startsWith(mscRedirectUri)) {
             return;
           }
           _controller.loadUrl("about:blank");
@@ -64,8 +47,7 @@ class MscLoginPageState extends State<MscLoginPage> {
               var errorDesc = errorDescMatcher.group(1);
               Log.debug("error: $error, desc: $errorDesc");
             }
-            // TODO 错误提示
-            Navigator.of(context).pop();
+            Navigator.of(context).pop(null);
             return;
           }
           var code = successMatcher.group(1);
@@ -78,31 +60,10 @@ class MscLoginPageState extends State<MscLoginPage> {
   }
 
   void getAccessToken(BuildContext context, String code) async {
-    var response = await MicrosoftService.dio().post(
-      _mscTokenUrl,
-      data: {
-        "grant_type": "authorization_code",
-        "client_id": _clientId,
-        "scope": _mscScope,
-        "code": code,
-        "redirect_uri": _mscRedirectUri,
-      },
-      options: Options(
-        contentType: "application/x-www-form-urlencoded",
-      ),
-    );
-    var mscToken = MscToken.fromJson(response.data);
-    var currentTime = DateTime.now();
-    var mscUser = User(
-      userType: USER_TYPE_MICROSOFT,
-      expiresIn:
-          currentTime.millisecondsSinceEpoch + (mscToken.expiresIn * 1000),
-      accessToken: mscToken.accessToken,
-      refreshToken: mscToken.refreshToken,
-      loginTime: currentTime,
-    );
-    Log.debug("login success: ${mscUser.toJson()}");
-    Navigator.of(context).pop(mscUser);
+    var response = await MicrosoftService.getAccessToken(code);
+    var user = response.data.convertToUser();
+    Log.debug("login success: ${user.toJson()}");
+    Navigator.of(context).pop(user);
   }
 
   @override
